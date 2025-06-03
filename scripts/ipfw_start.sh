@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# ipfw_start.sh  - start the firewall by loading ipfw.ko
+# ipfw_start.sh  - start vidar.
 #    Also load rule 65000 allow ip from any to any
 #    Must be root to run this script.
 
 usage()
 {
   echo
-  echo "usage: ipfw_start.sh  - start the firewall by loading ipfw.ko"
+  echo "usage: ipfw_start.sh  - start vidar. Do not load/unload ipfw.ko."
   echo "       Also load rule 65000 allow ip from any to any."
   echo
   echo "  Must be root to run this script."
@@ -29,8 +29,8 @@ fi
 # Use a here document to execute them in order.
 
 COMMANDS=$(cat <<EOF
-kldload ipfw
 ipfw add 65000 allow ip from any to any
+ipfw add 65000 allow tcp from any to any established
 ipfw table BAD create type addr missing
 ipfw add 60000 deny ip from table\\\(BAD\\\) to any
 ipfw table BAD add 9999:9999:9999:9999:9999:9999:9999:9999
@@ -39,7 +39,7 @@ ipfw list
 EOF
 )
 
-echo -n "Loading IPFW... "
+echo -n "Loading vidar... "
 
 
 echo "$COMMANDS" | while IFS= read CMD
