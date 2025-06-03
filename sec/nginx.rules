@@ -1,0 +1,101 @@
+# Rules to manage /var/log/nginx/access.log
+# Tue Jun  3 17:39:49 UTC 2025
+#
+# =============  WHITELIST VERSION  ========================
+# Legitimate methods
+# GET|POST|HEAD|OPTIONS|PUT|PATCH
+# CONNECT|TRACE|DELETE
+#
+#  Here is the applicable pseudocode:
+# 
+# if (it's a null method)  #RULE_1
+#     block IP immediately
+# else
+#     if (it's a CONNECT, TRACE, or DELETE method) #RULE_2
+#     block IP immediately
+#     else
+#         if ("if it's not on this list, block it: GET|POST|HEAD|OPTIONS|PUT|PATCH) #RULE_3
+#             block immediately
+#         else
+#             (if it is on the above list AND it's one of these patterns: allow (i.e. write to ALLOWED.TXT) RULE_4, RULE_5, RULE_6
+#         endif
+#     endif
+# endif
+#
+# CONTEXT for 3 strikes ??
+
+
+type = Single
+rem = RULE 1: Disallow null HTTP method \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"\"
+desc = echo input line
+action = write BLOCKED.TXT %t: $1 NGINX_1; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
+
+type = Single
+rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE \
+      See also RULE_3 \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
+desc = echo input line
+action = write BLOCKED.TXT %t: $1 NGINX_2; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
+
+type = Single
+rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+      This pattern is the negative of those - i.e. "if it's not on this list, block it. \
+      See also RULE_2 \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
+desc = echo input line
+action = write BLOCKED.TXT %t: $1 NGINX_3; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
+##### ALLOW PATTERNS, Rules 4, 5, 6
+
+
+type = Single
+rem = RULE 4: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
+desc = echo input line
+action = write ALLOW.TXT $0 NGINX_4; \
+
+
+type = Single
+rem = RULE 5: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
+desc = echo input line
+action = write ALLOW.TXT $0 NGINX_5; \
+
+
+type = Single
+rem = RULE 6: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
+desc = echo input line
+action = write ALLOW.TXT $0 NGINX_6; \
+
+
+type = Single
+rem = RULE 999: Cleanup rule. \
+      Anything not handled goes into NOT_MATCHED_NGINX.TXT 
+ptype = RegExp
+pattern =.
+desc = echo input line
+action = write NOT_MATCHED_NGINX.TXT $0 NGINX_999
+
+

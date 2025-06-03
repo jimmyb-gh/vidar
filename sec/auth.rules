@@ -1,0 +1,90 @@
+#
+# Rules to manage /var/log/auth.log
+# Sat May 31 17:15:07 UTC 2025
+#
+#
+#type = Single
+#rem = RULE 0: TEST RULE
+#ptype = RegExp
+#pattern =([a-fA-F0-9.:]+)
+#desc = echo input line
+#action = write BLOCKED.TXT %t: $1 AUTH_0; \
+#         udpsock 127.0.0.1:5555 $1%.nl
+#
+
+type = Single
+rem = RULE 1: If the following pattern is matched: \
+      "Connection closed by invalid user ryx 144.217.12.139 port 56686 [preauth]" \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =Connection closed by invalid user (\w+) (.*?) port (\d+) \[preauth\]
+desc = echo input line
+action = write BLOCKED.TXT %t: $2 AUTH_1; \
+         udpsock 127.0.0.1:5555 $2%.nl
+
+#
+## NOTE: Rule 2 is similar, but different from Rule 1. It must come after Rule 1.
+#type = Single
+#rem = RULE 2: If the following pattern is matched: \
+#      "Connection closed by 185.247.137.179 port 36491 [preauth]" \
+#      SEC writes the captured IP to port 5555.
+#ptype = RegExp
+#pattern =Connection closed by (.*?) port
+#desc = echo input line
+#action = write BLOCKED.TXT %t: $1 AUTH_2; \
+#         udpsock 127.0.0.1:5555 $1%.nl
+#
+
+type = Single
+rem = RULE 3: If the following pattern is matched: \
+      "reverse mapping checking getaddrinfo for scanner-203.scanner.com [199.45.154.132] failed." \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =reverse mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
+desc = echo input line
+action = write BLOCKED.TXT %t: $2 AUTH_3; \
+         udpsock 127.0.0.1:5555 $2%.nl
+
+
+type = Single
+rem = RULE 4: If the following pattern is matched: \
+      "banner exchange: Connection from 206.168.34.35 port 44458: invalid format" \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =banner exchange\: Connection from (.*?) port (.*?)\: invalid format
+desc = echo input line
+action = write BLOCKED.TXT %t: $1 AUTH_4; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
+
+type = Single
+rem = RULE 5: If the following pattern is matched: \
+      "Invalid user linuxserver from 125.67.215.189 port 39617: \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =Invalid user (.*?) from (.*?) port (\d*)
+desc = echo input line
+action = write BLOCKED.TXT %t: $2 AUTH_5; \
+         udpsock 127.0.0.1:5555 $2%.nl
+
+
+type = Single
+rem = RULE 6: If the following pattern is matched: \
+      "Address 179.43.144.242 maps to hostedby.privatelayer.com, but this does not map back to the address." \
+      SEC writes the captured IP to port 5555.
+ptype = RegExp
+pattern =Address (.*?) maps to (.*?), but this does not map back to the address\.
+desc = echo input line
+action = write BLOCKED.TXT %t: $1 AUTH_6; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
+# Cleanup Rule
+
+type = Single
+rem = RULE 999: Cleanup rule.  \
+      Anything not handled goes into NOT_MATCHED_AUTH.TXT
+ptype = RegExp
+pattern =.
+desc = echo input line
+action = write NOT_MATCHED_AUTH.TXT $0 AUTH_999
+
