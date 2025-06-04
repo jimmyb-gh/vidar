@@ -1,0 +1,52 @@
+# Contexts set by calendar rules.
+#
+# BUSINESS_HOURS - a context for business hours (7:00am to 11:59pm, M-F)
+# OFF_HOURS - a context for all other hours.
+#
+# Two calendars are needed since calendar is run every minute
+# and we don't actually know when SEC will be started (or restarted)
+# 
+# *  *  *  *  *  *
+# ^  ^  ^  ^  ^  ^
+# |  |  |  |  |  |
+# |  |  |  |  |  +--- matches years (0-99) denoting the last to digits (optional)
+# |  |  |  |  +------ matches weekdays (0-7, 0 and 7 denoting Sunday)
+# |  |  |  +--------- matches month (1-12)
+# |  |  +------------ matches days (0-31, 0 denotes last day of any month)
+# |  +--------------- matches hours (0-23)
+# +------------------ matches minutes (0-59)
+#
+# The day and weekday conditions are joined with AND, not OR
+# so "0 1 25-31 10 7" means 1AM on last Sunday in October.
+# See the Sec man page for other subtle differences.
+
+# Set for Business Hours
+type=Calendar
+time=* 7-23 * * 1,2,3,4,5
+desc=BUSINESS_HOURS
+context=!BUSINESS_HOURS
+action=create %s; assign %J "BUSINESS HOURS" at %t;\
+       write - Starting %J at %t.;\
+       delete OFF_HOURS;
+
+
+
+# Set for Off Hours
+type=Calendar
+time=* 0-6,23 * * *
+context=!OFF_HOURS
+desc=OFF_HOURS
+action=create %s; assign %J "OFF HOURS" at %t;\
+       write - Starting  %J %t.;\
+       delete BUSINESS_HOURS;
+
+#
+# This calendar rule is a health check. Writes to stdout every
+# five minutes. This could be used for visual confirmation
+# that SEC is still running.
+#
+time=* * * * *
+type=Calendar
+desc=SEC check
+action=write - %s %J at  %t
+
