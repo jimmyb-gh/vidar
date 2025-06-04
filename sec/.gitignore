@@ -1,3 +1,6 @@
 logs/
-utils/
+ALLOW.TXT
+BLOCKED.TXT
+NOT_MATCHED_*.TXT
+
 

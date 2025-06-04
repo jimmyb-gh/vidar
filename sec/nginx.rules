@@ -17,7 +17,11 @@
 #         if ("if it's not on this list, block it: GET|POST|HEAD|OPTIONS|PUT|PATCH) #RULE_3
 #             block immediately
 #         else
-#             (if it is on the above list AND it's one of these patterns: allow (i.e. write to ALLOWED.TXT) RULE_4, RULE_5, RULE_6
+#             (if it is on the above list AND it's one of these patterns)
+#                 allow (i.e. write to ALLOWED.TXT) RULE_4, RULE_5, RULE_6
+#         else
+#             (if it is on the above list AND NOT one of the patterns in RULE_4, RULE_5, and RULE_6)
+#                 Add to context for 3_STRIKES (two more failures and it's BLOCKED) RULE_10
 #         endif
 #     endif
 # endif
