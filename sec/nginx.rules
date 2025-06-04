@@ -21,12 +21,11 @@
 #                 allow (i.e. write to ALLOWED.TXT) RULE_4, RULE_5, RULE_6
 #         else
 #             (if it is on the above list AND NOT one of the patterns in RULE_4, RULE_5, and RULE_6)
-#                 Add to context for 3_STRIKES (two more failures and it's BLOCKED) RULE_10
+#                  BLOCKED_NGINX.TXT RULE_100
 #         endif
 #     endif
 # endif
 #
-# CONTEXT for 3 strikes ??
 
 
 type = Single
@@ -35,7 +34,7 @@ rem = RULE 1: Disallow null HTTP method \
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\"
 desc = echo input line
-action = write BLOCKED.TXT %t: $1 NGINX_1; \
+action = write BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -46,7 +45,7 @@ rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
 desc = echo input line
-action = write BLOCKED.TXT %t: $1 NGINX_2; \
+action = write BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -58,7 +57,7 @@ rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = echo input line
-action = write BLOCKED.TXT %t: $1 NGINX_3; \
+action = write BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 ##### ALLOW PATTERNS, Rules 4, 5, 6
@@ -69,7 +68,7 @@ rem = RULE 4: Allow Pattern. \
       See pseudocode above. We don't care about the IP, just allow this line. \
       Try matching several at a time. Saves time.
 ptype = RegExp
-pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
+pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/|/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
 desc = echo input line
 action = write ALLOW.TXT $0 NGINX_4; \
 
@@ -92,6 +91,22 @@ ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
 desc = echo input line
 action = write ALLOW.TXT $0 NGINX_6; \
+
+
+#
+# At this point in the ruleset, everything we *should* allow has already
+# been allowed.
+# No more 3 strikes.  You're out on the first strike.
+#
+
+type = Single
+rem = RULE 100: Block on actual malice.  There is no 3 strikes mode.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"(GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
+desc = Actual malice from $1
+action = write BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
+         udpsock 127.0.0.1:5555 $1%.nl
+
 
 
 type = Single
