@@ -1,1 +1,1 @@
-s]@@@LOGS@@@]/tmp/logs]
+s]@@@LOGS@@@]/tmp]

@@ -8,7 +8,7 @@
 #ptype = RegExp
 #pattern =([a-fA-F0-9.:]+)
 #desc = echo input line
-#action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $1 AUTH_0; \
+#action = write /tmp/BLOCKED_AUTH.TXT %t: $1 AUTH_0; \
 #         udpsock 127.0.0.1:5555 $1%.nl
 #
 
@@ -19,7 +19,7 @@ rem = RULE 1: If the following pattern is matched: \
 ptype = RegExp
 pattern =Connection closed by invalid user (\w+) (.*?) port (\d+) \[preauth\]
 desc = echo input line
-action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $2 AUTH_1; \
+action = write /tmp/BLOCKED_AUTH.TXT %t: $2 AUTH_1; \
          udpsock 127.0.0.1:5555 $2%.nl
 
 #
@@ -31,7 +31,7 @@ action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $2 AUTH_1; \
 #ptype = RegExp
 #pattern =Connection closed by (.*?) port
 #desc = echo input line
-#action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $1 AUTH_2; \
+#action = write /tmp/BLOCKED_AUTH.TXT %t: $1 AUTH_2; \
 #         udpsock 127.0.0.1:5555 $1%.nl
 #
 
@@ -42,7 +42,7 @@ rem = RULE 3: If the following pattern is matched: \
 ptype = RegExp
 pattern =reverse mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
 desc = echo input line
-action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $2 AUTH_3; \
+action = write /tmp/BLOCKED_AUTH.TXT %t: $2 AUTH_3; \
          udpsock 127.0.0.1:5555 $2%.nl
 
 
@@ -53,7 +53,7 @@ rem = RULE 4: If the following pattern is matched: \
 ptype = RegExp
 pattern =banner exchange\: Connection from (.*?) port (.*?)\: invalid format
 desc = echo input line
-action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $1 AUTH_4; \
+action = write /tmp/BLOCKED_AUTH.TXT %t: $1 AUTH_4; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -64,7 +64,7 @@ rem = RULE 5: If the following pattern is matched: \
 ptype = RegExp
 pattern =Invalid user (.*?) from (.*?) port (\d*)
 desc = echo input line
-action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $2 AUTH_5; \
+action = write /tmp/BLOCKED_AUTH.TXT %t: $2 AUTH_5; \
          udpsock 127.0.0.1:5555 $2%.nl
 
 
@@ -75,7 +75,7 @@ rem = RULE 6: If the following pattern is matched: \
 ptype = RegExp
 pattern =Address (.*?) maps to (.*?), but this does not map back to the address\.
 desc = echo input line
-action = write /tmp/logs/BLOCKED_AUTH.TXT %t: $1 AUTH_6; \
+action = write /tmp/BLOCKED_AUTH.TXT %t: $1 AUTH_6; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 # Cleanup Rule
@@ -86,5 +86,5 @@ rem = RULE 999: Cleanup rule.  \
 ptype = RegExp
 pattern =.
 desc = echo input line
-action = write /tmp/logs/NOT_MATCHED_AUTH.TXT $0 AUTH_999
+action = write /tmp/NOT_MATCHED_AUTH.TXT $0 AUTH_999
 

@@ -10,10 +10,6 @@
 
 set -x
 
-AUTHLOG=/var/log/auth.log
-EMAILLOG=/var/log/maillog
-NGINXLOG=/var/log/nginx/access.log
-
 for i in ${AUTHLOG} ${EMAILLOG} ${NGINXLOG}
 do
   if [ ! -f ${i} ]
@@ -21,6 +17,12 @@ do
     touch ${i}
   fi
 done
+
+
+#
+# Put in a sanity check here to ensure that the
+# rules files have been fixed up with fixup_rules.sh
+#
 
 /usr/local/bin/sec  \
   --conf=${VIDAR_SEC}/auth.rules \
