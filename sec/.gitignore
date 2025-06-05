@@ -2,5 +2,6 @@ logs/
 ALLOW.TXT
 BLOCKED_*.TXT
 NOT_MATCHED_*.TXT
+archive/
 
 
