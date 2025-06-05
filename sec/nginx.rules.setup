@@ -34,7 +34,7 @@ rem = RULE 1: Disallow null HTTP method \
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\"
 desc = echo input line
-action = write /tmp/logs/BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -45,7 +45,7 @@ rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
 desc = echo input line
-action = write /tmp/logs/BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -57,7 +57,7 @@ rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = echo input line
-action = write /tmp/logs/BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 ##### ALLOW PATTERNS, Rules 4, 5, 6
@@ -70,7 +70,7 @@ rem = RULE 4: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/|/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
 desc = echo input line
-action = write /tmp/logs/ALLOW.TXT $0 NGINX_4; \
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_4; \
 
 
 type = Single
@@ -80,7 +80,7 @@ rem = RULE 5: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
 desc = echo input line
-action = write /tmp/logs/ALLOW.TXT $0 NGINX_5; \
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_5; \
 
 
 type = Single
@@ -90,7 +90,7 @@ rem = RULE 6: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
 desc = echo input line
-action = write /tmp/logs/ALLOW.TXT $0 NGINX_6; \
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_6; \
 
 
 #
@@ -104,7 +104,7 @@ rem = RULE 100: Block on actual malice.  There is no 3 strikes mode.
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = Actual malice from $1
-action = write /tmp/logs/BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
          udpsock 127.0.0.1:5555 $1%.nl
 
 
@@ -115,6 +115,6 @@ rem = RULE 999: Cleanup rule. \
 ptype = RegExp
 pattern =.
 desc = echo input line
-action = write /tmp/logs/NOT_MATCHED_NGINX.TXT $0 NGINX_999
+action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_999
 
 
