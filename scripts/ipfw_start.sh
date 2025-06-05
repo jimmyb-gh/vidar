@@ -25,12 +25,15 @@ fi
 
 #set -x
 
-# IPFW setup commands.
+# IPFW setup commands.  This script does NOT kldload ipfw.
+# Set up the ipfw0 interface and enable logging on rule 65000.
 # Use a here document to execute them in order.
 
 COMMANDS=$(cat <<EOF
-ipfw add 65000 allow ip from any to any
-ipfw add 65000 allow tcp from any to any established
+sysctl net.inet.ip.fw.verbose=0
+ifconfig ipfw0 create
+ipfw add 65000 allow log ip from any to any
+ipfw add 65010 allow tcp from any to any established
 ipfw table BAD create type addr missing
 ipfw add 60000 deny ip from table\\\(BAD\\\) to any
 ipfw table BAD add 9999:9999:9999:9999:9999:9999:9999:9999
