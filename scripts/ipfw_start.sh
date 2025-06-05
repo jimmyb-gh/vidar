@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # ipfw_start.sh  - start vidar.
-#    Also load rule 65000 allow ip from any to any
+#    Also load rules to allow ip, ipv6, icmp, icmp6 from any to any
 #    Must be root to run this script.
 
 usage()
@@ -26,14 +26,16 @@ fi
 #set -x
 
 # IPFW setup commands.  This script does NOT kldload ipfw.
-# Set up the ipfw0 interface and enable logging on rule 65000.
+# Set up logging to /var/log/security and enable logging on rule 65000.
 # Use a here document to execute them in order.
 
 COMMANDS=$(cat <<EOF
-sysctl net.inet.ip.fw.verbose=0
-ifconfig ipfw0 create
+sysctl net.inet.ip.fw.verbose=1
 ipfw add 65000 allow log ip from any to any
-ipfw add 65010 allow tcp from any to any established
+ipfw add 65005 allow log ipv6 from any to any
+ipfw add 65010 allow log icmp from any to any
+ipfw add 65015 allow log icmp6 from any to any
+ipfw add 65020 allow tcp from any to any established
 ipfw table BAD create type addr missing
 ipfw add 60000 deny ip from table\\\(BAD\\\) to any
 ipfw table BAD add 9999:9999:9999:9999:9999:9999:9999:9999
