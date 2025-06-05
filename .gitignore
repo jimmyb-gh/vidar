@@ -1,7 +1,9 @@
 logs/
 ALLOW.TXT
-BLOCKED_*.TXT
+BLOCKED*.TXT
 NOT_MATCHED_*.TXT
 archive/
+sec/.gitignore
+sec/BLOCKED.TXT
 
 
