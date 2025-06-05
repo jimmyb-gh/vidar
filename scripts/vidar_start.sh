@@ -1,20 +1,25 @@
 #!/bin/sh
 #
-# ipfw_start.sh  - start vidar.
+# vidar_start.sh  - start vidar.
 #    Also load rules to allow ip, ipv6, icmp, icmp6 from any to any
 #    Must be root to run this script.
 
 usage()
 {
   echo
-  echo "usage: ipfw_start.sh  - start vidar. Do not load/unload ipfw.ko."
-  echo "       Also load rule 65000 allow ip from any to any."
+  echo "usage: vidar_start.sh  - start vidar. Do not load/unload ipfw.ko."
+  echo "       Also load rules 650** allow ip from any to any."
   echo
   echo "  Must be root to run this script."
   echo "  Exiting..."
   echo
   exit 1
 }
+
+# Pick up environment for this run.
+. ../vidar_env.sh
+
+
 
 ME=`id -unr`
 

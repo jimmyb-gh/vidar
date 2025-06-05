@@ -7,6 +7,6 @@ VIDAR_SEC=${VIDAR_HOME}/sec
 VIDAR_SCRIPTS=${VIDAR_HOME}/scripts
 
 # vidar output files
-VIDAR_LOGS=${VIDAR_HOME}/logs
+VIDAR_LOGS=/tmp/logs
 
 

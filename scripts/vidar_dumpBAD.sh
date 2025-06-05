@@ -1,18 +1,23 @@
 #!/bin/sh
 #
-# ipfw_dumpBAD.sh  - collect the entire BAD table and save it to a file.
-#    Must be root to run this script.
+#   vidar_dumpBAD.sh  - collect the entire BAD table and save it to a file.
+#      Must be root to run this script.
 
 usage()
 {
   echo
-  echo "usage: ipfw_dumpBAD.sh  - dump the entire BAD table and save it to a file."
+  echo "usage: vidar_dumpBAD.sh  - dump the entire BAD table and save it to a file."
   echo
   echo "  Must be root to run this script."
   echo "  Exiting..."
   echo
   exit 1
 }
+
+
+# Pick up environment for this run.
+. ../vidar_env.sh
+
 
 ME=`id -unr`
 
@@ -26,9 +31,9 @@ echo -n "Dumping BAD ... "
 
 COMMAND="/sbin/ipfw table BAD list"
 
-# echo "${COMMAND} \> BAD.TXT"
+# echo "${COMMAND} \> ${VIDAR_LOGS}/BAD.TXT"
 
-STATUS=`${COMMAND} > BAD.TXT`
+STATUS=`${COMMAND} > ${VIDAR_LOGS}/BAD.TXT`
 
 if [ $? -ne 0 ]
 then
@@ -37,7 +42,7 @@ then
   echo "  Check ipfw module, and try again."
   exit 2
 else
-  echo "done. BAD table dumped."
+  echo "done. BAD table dumped in ${VIDAR_LOGS}."
   # show proof here.
   echo
 fi

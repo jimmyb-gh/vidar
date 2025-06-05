@@ -1,12 +1,12 @@
 #!/bin/sh
 #
-# ipfw_stop.sh  - stop the firewall by unloading ipfw.ko
+#  vidar_stop.sh  - stop the firewall by unloading ipfw.ko
 #    Must be root to run this script.
 
 usage()
 {
   echo
-  echo "usage: ipfw_stop.sh  - stop the firewall by unloading ipfw.ko"
+  echo "usage: vidar_stop.sh  - stop the firewall by unloading ipfw.ko"
   echo
   echo "  Must be root to run this script."
   echo "  Exiting..."
@@ -20,6 +20,10 @@ if [ "X${ME}" != "Xroot" ]
 then
   usage;
 fi
+
+# Pick up environment for this run.
+. ../vidar_env.sh
+
 
 echo -n "Stopping and unloading ipfw... "
 

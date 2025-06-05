@@ -3,7 +3,7 @@
 
 usage()
 {
-  echo "ipfw_add2BAD.sh [port] - add an entry to IPFW BAD table."
+  echo "vidar_add2BAD.sh [port] - add an entry to IPFW BAD table."
   echo
   echo "This script reads an ip from a UDP port and adds it to the IPFW BAD table."
   echo "The default port is 5555."
@@ -18,6 +18,8 @@ usage()
 }
 
 
+# Pick up environment for this run.
+. ../vidar_env.sh
 
 # Take port off command line or use a default.
 
