@@ -7,7 +7,11 @@ VIDAR_SEC=${VIDAR_HOME}/sec
 VIDAR_SCRIPTS=${VIDAR_HOME}/scripts
 
 # Vidar output files
-VIDAR_LOGS=/var/log/vidar
+#VIDAR_LOGS=/var/log/vidar
+VIDAR_LOGS=${VIDAR_HOME}/logs
+
+# Vidar PIDS directory.  All pids go in this directory.
+VIDAR_PIDS=${VIDAR_HOME}/pids
 
 # Vidar input files.
 # Normally these should be the actual files on the current system
@@ -23,12 +27,17 @@ AUTHLOG=/root/src/input/auth.log
 EMAILLOG=/root/src/input/maillog
 NGINXLOG=/root/src/input/access.log
 
+# Vidar UDP port, used in Sec rules and in vidar_add2BAD.sh
+VIDAR_UDP=5555
+
 echo 
 echo "VIDAR Environment:"
 echo "VIDAR_HOME=    [${VIDAR_HOME}]"
 echo "VIDAR_SEC=     [${VIDAR_SEC}]"
 echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
-echo "INPUTS:                                OUTPUTS:"
+echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
+echo "VIDAR_UDP=     [${VIDAR_UDP}]"
+echo "INPUTS:                                          OUTPUTS:"
 echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
 echo "EMAILLOG= [${EMAILLOG}]"
 echo "NGINXLOG= [${NGINXLOG}]"
