@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+echo 
+echo "========  VIDAR: vidar_env.sh  ========="
+echo
+
 # vidar_env.sh - vidar environment variables.
 #
 # Base directory locations
@@ -30,15 +35,19 @@ NGINXLOG=/root/src/input/access.log
 # Vidar UDP port, used in Sec rules and in vidar_add2BAD.sh
 VIDAR_UDP=5555
 
-echo 
-echo "VIDAR Environment:"
-echo "VIDAR_HOME=    [${VIDAR_HOME}]"
-echo "VIDAR_SEC=     [${VIDAR_SEC}]"
-echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
-echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
-echo "VIDAR_UDP=     [${VIDAR_UDP}]"
-echo "INPUTS:                                          OUTPUTS:"
-echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
-echo "EMAILLOG= [${EMAILLOG}]"
-echo "NGINXLOG= [${NGINXLOG}]"
-echo
+# Print the environment unless explicitly asked not to do so.
+
+if [ "$(echo "$1" | tr '[:lower:]' '[:upper:]')" != "Q" ]
+then
+  echo "VIDAR Environment:"
+  echo "VIDAR_HOME=    [${VIDAR_HOME}]"
+  echo "VIDAR_SEC=     [${VIDAR_SEC}]"
+  echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
+  echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
+  echo "VIDAR_UDP=     [${VIDAR_UDP}]"
+  echo "INPUTS:                                          OUTPUTS:"
+  echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
+  echo "EMAILLOG= [${EMAILLOG}]"
+  echo "NGINXLOG= [${NGINXLOG}]"
+fi
+
