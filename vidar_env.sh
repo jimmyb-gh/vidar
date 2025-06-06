@@ -7,7 +7,7 @@ VIDAR_SEC=${VIDAR_HOME}/sec
 VIDAR_SCRIPTS=${VIDAR_HOME}/scripts
 
 # Vidar output files
-VIDAR_LOGS=/tmp
+VIDAR_LOGS=/var/log/vidar
 
 # Vidar input files.
 # Normally these should be the actual files on the current system
@@ -23,3 +23,13 @@ AUTHLOG=/root/src/input/auth.log
 EMAILLOG=/root/src/input/maillog
 NGINXLOG=/root/src/input/access.log
 
+echo 
+echo "VIDAR Environment:"
+echo "VIDAR_HOME=    [${VIDAR_HOME}]"
+echo "VIDAR_SEC=     [${VIDAR_SEC}]"
+echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
+echo "INPUTS:                                OUTPUTS:"
+echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
+echo "EMAILLOG= [${EMAILLOG}]"
+echo "NGINXLOG= [${NGINXLOG}]"
+echo
