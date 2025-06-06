@@ -6,5 +6,5 @@ archive/
 sec/.gitignore
 sec/BLOCKED.TXT
 sec/f.sed
-
+sec/sec.pid
 

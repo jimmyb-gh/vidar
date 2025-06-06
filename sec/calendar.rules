@@ -47,5 +47,5 @@ action=create %s; assign %J "OFF HOURS" at %t;\
 time=* * * * *
 type=Calendar
 desc=SEC check
-action=write /tmp/CAL.OUT %s %J at %t
+action=write /var/log/vidar/CAL.OUT %s %J at %t
 

@@ -1,1 +1,1 @@
-s]@@@LOGS@@@]/tmp]
+s]@@@LOGS@@@]/var/log/vidar]
