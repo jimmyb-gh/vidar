@@ -7,5 +7,9 @@ sec/.gitignore
 sec/BLOCKED.TXT
 sec/f.sed
 sec/sec.pid
+sec/auth.rules
+sec/calendar.rules
+sec/email.rules
+sec/nginx.rules
 pids/
 
