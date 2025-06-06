@@ -36,7 +36,7 @@ done
   --detach \
   --tail \
   --log=${VIDAR_LOGS}/sec.output \
-  --pid=${VIDAR_SEC}/sec.pid \
+  --pid=${VIDAR_PIDS}/sec.pid \
   --conf=${VIDAR_SEC}/auth.rules \
   --conf=${VIDAR_SEC}/email.rules \
   --conf=${VIDAR_SEC}/nginx.rules \
