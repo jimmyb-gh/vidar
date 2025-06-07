@@ -4,9 +4,14 @@
 #                 configured by all rules in ./sec
 #                 and input files accordingly
 
+echo 
+echo "========  VIDAR: sec_start.sh  ========="
+echo
 
-# Pick up environment for this run.
-. ../vidar_env.sh
+
+
+# Pick up environment for this run, but don't print it out.
+. ../vidar_env.sh Q
 
 set -x
 
@@ -31,9 +36,9 @@ done
 # --conf   : a sec configuration file (multiples possible)
 # --input  : a sec input file (multiples possible)
 
+#  --detach \
 
 /usr/local/bin/sec  \
-  --detach \
   --tail \
   --log=${VIDAR_LOGS}/sec.output \
   --pid=${VIDAR_PIDS}/sec.pid \
@@ -43,5 +48,7 @@ done
   --input=${AUTHLOG} \
   --input=${EMAILLOG} \
   --input=${NGINXLOG} 
+
+exit 0
 
 
