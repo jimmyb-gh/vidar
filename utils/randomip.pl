@@ -2,15 +2,15 @@
 
 # randomip.pl - generate a valid random IP address.
 
-# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4
-#  ARGV                          0            1           2        3
+# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4  N
+#  ARGV                          0            1           2        3    4
 
 $| = 1;  #piping hot
 
 $numargs = scalar @ARGV;
 
-if((scalar @ARGV) != 4) {
-  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4\n";
+if((scalar @ARGV) != 5) {
+  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4 N\n";
   exit 1;
 }
 
@@ -41,7 +41,7 @@ if ($throttle == 0) {
 
 # If there is an R - explicitly set random v4/v6 IP
 $randvar = $ARGV[3];
-if ($randvar =~ /R/) {
+if ($randvar =~ /R/i) {
     $rando = 1;
 }
 elsif ($randvar == 6) {
@@ -52,6 +52,13 @@ elsif ($randvar == 4) {
 }
 else {
     $rando = 4
+}
+
+
+# Check for numbered standard output
+$numbered = $ARGV[4];
+if ($numbered =~ /n/i) {
+    $numbered = 1;    # output is to be numbered
 }
 
 while ($repititions-- > 0) {
@@ -73,7 +80,12 @@ while ($repititions-- > 0) {
       $b = int(rand($max4));
       $c = int(rand($max4));
       $d = int(rand($max4));
-      $outline = sprintf("%d\.%d\.%d\.%d", $a, $b, $c, $d);
+      if ($numbered == 1) {
+          $outline = sprintf("%-06.6d| %d\.%d\.%d\.%d", $count, $a, $b, $c, $d);
+      }
+      else {
+          $outline = sprintf("%d\.%d\.%d\.%d", $a, $b, $c, $d);
+      }
   }
   else {
       $max = 0x3000;
@@ -85,8 +97,14 @@ while ($repititions-- > 0) {
       $f = int(rand($max6));
       $g = int(rand($max6));
       $h = int(rand($max6));
-      $outline = sprintf("%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
-      $a, $b, $c, $d, $e, $f, $g, $h)
+      if ($numbered == 1) {
+          $outline = sprintf("%-06.6d| %4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
+          $count, $a, $b, $c, $d, $e, $f, $g, $h)
+      }
+      else {
+          $outline = sprintf("%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
+          $a, $b, $c, $d, $e, $f, $g, $h)
+      }
   }
   print STDERR  "$count: $outline\n";
   print STDOUT  "$outline\n";
