@@ -29,36 +29,35 @@
 
 
 type = Single
-rem = RULE 1: Disallow null HTTP method \
-      SEC writes the captured IP to port @@@PORT@@@.
+rem = RULE 1: Disallow null HTTP method 
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\"
 desc = echo input line
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
-         udpsock 127.0.0.1:@@@PORT@@@ $1%.nl
+         write - $1
+
 
 
 type = Single
 rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE \
-      See also RULE_3 \
-      SEC writes the captured IP to port @@@PORT@@@.
+      See also RULE_3 
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
 desc = echo input line
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
-         udpsock 127.0.0.1:@@@PORT@@@ $1%.nl
+         write - $1
 
 
 type = Single
 rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
       This pattern is the negative of those - i.e. "if it's not on this list, block it. \
-      See also RULE_2 \
-      SEC writes the captured IP to port @@@PORT@@@.
+      See also RULE_2 
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = echo input line
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
-         udpsock 127.0.0.1:@@@PORT@@@ $1%.nl
+         write - $1
+
 
 ##### ALLOW PATTERNS, Rules 4, 5, 6
 
@@ -105,7 +104,7 @@ ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = Actual malice from $1
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
-         udpsock 127.0.0.1:@@@PORT@@@ $1%.nl
+         write - $1
 
 
 
