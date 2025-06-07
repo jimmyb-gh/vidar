@@ -21,8 +21,8 @@ then
   usage;
 fi
 
-# Pick up environment for this run.
-. ../vidar_env.sh
+# Pick up environment for this run, but don't print it out.
+. ../vidar_env.sh Q
 
 
 echo -n "Stopping and unloading ipfw... "
