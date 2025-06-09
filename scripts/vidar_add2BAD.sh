@@ -1,19 +1,14 @@
 #!/bin/sh
 #
 
-echo 
-echo "========  VIDAR: vidar_add2BAD.sh  ========="
-echo
-
-
 usage()
 {
   echo "vidar_add2BAD.sh [port] - add an entry to IPFW BAD table."
   echo
-  echo "This script reads an ip standard input and adds it to the IPFW BAD table."
+  echo "This script reads an IP on standard input and adds it to the IPFW BAD table."
   echo "IPFW creates table BAD if it doesn't exist."
   echo "The checktype function determines (loosely) whether IPv4 or IPv6 is passed."
-  echo "IPFW allow either address type to be loaded into the same address table."
+  echo "IPFW allows either address type to be loaded into the same address table."
   echo
   echo "Must be root to run this script."
   echo "  Exiting..."
@@ -23,8 +18,9 @@ usage()
 
 
 # Pick up environment for this run, but don't print it out.
-. ../vidar_env.sh  Q 
 
+SHOW_ENV="N"
+. ../vidar_env.sh
 
 
 checkip4()
@@ -102,21 +98,28 @@ checktype()
   echo "${IPSTATUS}"
 }
 
-
-# cleanup and exit
-cleanup() {
-  echo "Terminated.  Cleaning up... removing listener on port ${PORT}."
-  echo "Done."
-  exit
+# Function to handle cleanup
+cleanupINT() {
+    echo "vidar_add2BAD.sh terminated on signal INT." >&2
+    exit 0
 }
-
-
-
+cleanupTERM() {
+    echo "vidar_add2BAD.sh terminated on signal TERM." >&2
+    exit 0
+}
+cleanupPIPE() {
+    echo "vidar_add2BAD.sh terminated on signal PIPE." >&2
+    exit 0
+}
+# Set up signal handlers.
+trap cleanupINT  INT
+trap cleanupTERM TERM
+trap cleanupPIPE PIPE 
 
 ############################ BEGIN #######################
 
 echo
-echo "Starting ipfw_add2BAD.sh"
+echo "Starting vidar_add2BAD.sh"
 
 # must be root
 ME=`/usr/bin/id -unr`
@@ -126,6 +129,12 @@ then
   usage;
 fi
 
+# Save PID for later.
+echo "Saving PID to [${VIDAR_PIDS}/add2BAD.pid]"
+echo "echo $$ > ${VIDAR_PIDS}/add2BAD.pid"
+echo $$ > ${VIDAR_PIDS}/add2BAD.pid
+echo "Done."
+
 # Set IPFW commands here. These commands won't be looped like the ones in vidar_start.sh.
 # Keyword "missing" allows to add a table without error even if it already exists.
 COMMAND1="/sbin/ipfw -q table BAD create type addr missing"
@@ -134,8 +143,7 @@ COMMAND3="/sbin/ipfw -q table BAD add "     # requires parameter to complete sta
 COMMAND4="/sbin/ipfw -q table BAD delete "  # requires parameter to complete statement
 
 
-
-# COMMAND1 - Create the table if necessary.
+# COMMAND1 - Create the table.
 #            This command should not really fail.
 #            This command does not need to be in the main loop below.
 
@@ -152,7 +160,6 @@ fi
 
 
 echo "vidar_add2BAD: Waiting for data on stdin..."
-echo
 
 #
 # The Simple Event Correlator (SEC) reads rules for
@@ -209,6 +216,11 @@ do
     if [ ${RV} -ne 0 ]
     then
 #testing only        echo "Error on ipfw table lookup [${COMMAND2} ${IPADDR}]. Return code [${RV}]. Key [${IPADDR}] not found."
+        if [ "${IPADDR}" = "0.0.0.0" ]
+        then #don't attempt to add
+            echo "Can't add [${IPADDR}]========================================="
+            continue
+        fi
         echo "Adding key directly."
         ${COMMAND3} ${IPADDR}
         RV=$?
@@ -242,5 +254,6 @@ do
     fi  
 done
 
+echo "Script vidar_add2BAD.sh is exiting now."
 exit 0
 
