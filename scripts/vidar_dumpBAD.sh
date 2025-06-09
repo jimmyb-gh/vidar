@@ -3,11 +3,6 @@
 #   vidar_dumpBAD.sh  - collect the entire BAD table and save it to a file.
 #      Must be root to run this script.
 
-echo 
-echo "========  VIDAR: vidar_dumpBAD.sh  ========="
-echo
-
-
 usage()
 {
   echo
@@ -21,7 +16,9 @@ usage()
 
 
 # Pick up environment for this run, but don't print it out.
-. ../vidar_env.sh Q
+
+SHOW_ENV="N"
+. ../vidar_env.sh
 
 
 ME=`id -unr`
