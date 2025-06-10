@@ -3,13 +3,13 @@
 # Sat May 31 17:15:07 UTC 2025
 #
 #
-type = Single
-rem = RULE 0: TEST RULE
-ptype = RegExp
-pattern =([a-fA-F0-9.:]+)
-desc = echo input line
-action = write @@@LOGS@@@/TESTRULE.TXT %t: $1 AUTH_0; \
-         write - $1
+#type = Single
+#rem = RULE 0: TEST RULE
+#ptype = RegExp
+#pattern =([a-fA-F0-9.:]+)
+#desc = echo input line
+#action = write @@@LOGS@@@/TESTRULE.TXT %t: $1 AUTH_0; \
+#         write - $1
 
 
 type = Single
