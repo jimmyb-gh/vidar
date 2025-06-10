@@ -2,6 +2,15 @@
 #
 # vidar_env.sh - vidar environment variables.
 #
+
+# Hardcode HOME to /root until we get a proper install script.
+# See /etc/rc.local where BOOTING is set.
+
+if [ -f /var/run/BOOTING ]
+then
+    HOME=/root
+fi
+
 # Base directory locations
 VIDAR_HOME=$HOME/src/vidar
 VIDAR_SEC=${VIDAR_HOME}/sec
