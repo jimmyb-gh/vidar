@@ -23,6 +23,8 @@ usage()
 
 # Pick up environment for this run, and print it out.
 
+cd /root/src/vidar/scripts
+
 SHOW_ENV="Y"
 . ../vidar_env.sh
 
@@ -70,6 +72,11 @@ do
         echo
     fi
 done
+
+# On boot, remove all old logs.
+# This path is HARDCODED for safety.
+
+rm /root/src/vidar/logs/*
 
 
 # Remove all logs.  Safely.
