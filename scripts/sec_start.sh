@@ -56,6 +56,7 @@ trap cleanup INT TERM
   --conf=${VIDAR_SEC}/auth.rules \
   --conf=${VIDAR_SEC}/email.rules \
   --conf=${VIDAR_SEC}/nginx.rules \
+  --conf=${VIDAR_SEC}/calendar.rules \
   --input=${AUTHLOG} \
   --input=${EMAILLOG} \
   --input=${NGINXLOG} 
