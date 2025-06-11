@@ -51,7 +51,7 @@ trap cleanup INT TERM
 
 /usr/local/bin/sec  \
   --tail \
-  --log=${VIDAR_LOGS}/sec.output \
+  --log=${VIDAR_LOGS}/sec.log \
   --pid=${VIDAR_PIDS}/sec.pid \
   --conf=${VIDAR_SEC}/auth.rules \
   --conf=${VIDAR_SEC}/email.rules \

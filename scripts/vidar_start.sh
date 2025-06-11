@@ -192,7 +192,7 @@ ${VIDAR_SEC}/fixup_rules.sh
 # Let 'er rip.
 {
    exec   ${VIDAR_SCRIPTS}/sec_start.sh 2>/dev/null \
-        | ${VIDAR_SCRIPTS}/vidar_add2BAD.sh >${VIDAR_LOGS}/vidar_add2BAD.txt 
+        | ${VIDAR_SCRIPTS}/vidar_add2BAD.sh >${VIDAR_LOGS}/vidar_add2BAD.log 
 } &
 
 echo "Waiting for Sec startup."
