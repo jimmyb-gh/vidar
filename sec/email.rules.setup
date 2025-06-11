@@ -8,7 +8,7 @@ rem = RULE 1: If the following pattern is matched: \
 ptype = RegExp
 pattern =warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $1 EMAIL_1; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_1; \
          write - $1
 
 
@@ -18,7 +18,7 @@ rem = RULE 2: If the following pattern is matched: \
 ptype = RegExp
 pattern =warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $1 EMAIL_2; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_2; \
          write - $1
 
 
@@ -28,7 +28,7 @@ rem = RULE 3: If the following pattern is matched: \
 ptype = RegExp
 pattern =warning\: hostname (.*?) does not resolve to address (.*?)\: Name does not resolve
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $2 EMAIL_3; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_3; \
          write - $2
 
 
@@ -38,7 +38,7 @@ rem = RULE 4: If the following pattern is matched: \
 ptype = RegExp
 pattern =improper command pipelining after CONNECT from (.*?)\[(.*?)\]
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $2 EMAIL_4; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_4; \
          write - $2
 
 
@@ -48,7 +48,7 @@ rem = RULE 5: If the following pattern is matched: \
 ptype = RegExp
 pattern =imap\-login\: Disconnected\: Connection closed(.*?)\: user=(.*?)\, rip=(.*?)\, lip
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $3 EMAIL_5; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_5; \
          write - $3
 
 
@@ -59,7 +59,7 @@ rem = RULE 6: If the following pattern is matched: \
 ptype = RegExp
 pattern =imap\-login\: Disconnected\: Too many invalid commands(.*?)\, rip=(.*?)\, lip
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $2 EMAIL_6; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_6; \
          write - $2
 
 
@@ -69,7 +69,7 @@ rem = RULE 7: If the following pattern is matched: \
 ptype = RegExp
 pattern =disconnect from unknown\[(.*?)\] ehlo\=\d+ auth\=\d+\/\d+ unknown\=\d+\/\d+
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $1 EMAIL_7; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_7; \
          write - $1
 
 
@@ -79,7 +79,7 @@ rem = RULE 8: If the following pattern is matched: \
 ptype = RegExp
 pattern =SSL_accept error from unknown\[(.*?)\]\:
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $1 EMAIL_8; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_8; \
          write - $1
 
 
@@ -90,7 +90,7 @@ rem = RULE 9: If the following pattern is matched: \
 ptype = RegExp
 pattern =NOQUEUE\: reject\: RCPT from (.*?)\[(.*?)\]\: \d+
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $2 EMAIL_9; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_9; \
          write - $2
 
 
@@ -101,7 +101,7 @@ rem = RULE 10: If the following pattern is matched: \
 ptype = RegExp
 pattern =NOQUEUE\: lost connection after (\w+) from (.*?)\[(.*?)\]
 desc = echo input line
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $3 EMAIL_10; \
+action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_10; \
          write - $3
 
 
