@@ -25,7 +25,7 @@ type=Calendar
 time=* 7-23 * * 1,2,3,4,5
 desc=BUSINESS_HOURS
 context=!BUSINESS_HOURS
-action=create %s; assign %J "BUSINESS HOURS" at %t;\
+action=create %s; assign %J "BUSINESS HOURS";\
        write - Starting %J at %t.;\
        delete OFF_HOURS;
 
@@ -35,7 +35,7 @@ type=Calendar
 time=* 0-6,23 * * *
 context=!OFF_HOURS
 desc=OFF_HOURS
-action=create %s; assign %J "OFF HOURS" at %t;\
+action=create %s; assign %J "OFF HOURS";\
        write - Starting  %J %t.;\
        delete BUSINESS_HOURS;
 
@@ -47,5 +47,5 @@ action=create %s; assign %J "OFF HOURS" at %t;\
 time=* * * * *
 type=Calendar
 desc=SEC check
-action=write @@@LOGS@@@/CAL.OUT %s %J at %t
+action=write @@@LOGS@@@/calendar.log %s %J at %t
 
