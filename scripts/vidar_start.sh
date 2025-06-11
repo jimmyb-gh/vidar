@@ -36,6 +36,17 @@ then
   usage;
 fi
 
+#
+# Ensure we have all the directories we need.
+#
+THISDIR=`pwd`
+for i in logs pids scripts sec utils
+do
+  echo "Checking directories: [${THISDIR}/${i}]"
+  mkdir -p ${THISDIR}/${i}
+done
+
+
 
 # Remove old PID files.  Safely.
 

@@ -37,7 +37,7 @@ AUTHLOG=/root/src/input/auth.log
 EMAILLOG=/root/src/input/maillog
 NGINXLOG=/root/src/input/access.log
 
-# Print the environment unless explicitly asked not to do so.
+# Print the environment only if explicitly asked to do so.
 #
 if [ "X${SHOW_ENV}" = "XY" ]
 then
