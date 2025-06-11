@@ -39,13 +39,12 @@ fi
 #
 # Ensure we have all the directories we need.
 #
-THISDIR=`pwd`
+
 for i in logs pids scripts sec utils
 do
-  echo "Checking directories: [${THISDIR}/${i}]"
-  mkdir -p ${THISDIR}/${i}
+  echo "Checking directories: [${VIDAR_HOME}/${i}]"
+  mkdir -p ${VIDAR_HOME}/${i}
 done
-
 
 
 # Remove old PID files.  Safely.
