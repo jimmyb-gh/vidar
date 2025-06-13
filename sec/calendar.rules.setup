@@ -40,12 +40,26 @@ action=create %s; assign %J "OFF HOURS";\
        delete BUSINESS_HOURS;
 
 
+## This calendar rule is a health check. Writes to stdout every
+## minute. This could be used for visual confirmation
+## that SEC is still running or implementing a watchdog.
+##
+#time=* * * * *
+#type=Calendar
+#desc=SEC check
+#action=write @@@LOGS@@@/calendar.log %s %J at %t
+#
+
 # This calendar rule is a health check. Writes to stdout every
 # minute. This could be used for visual confirmation
 # that SEC is still running or implementing a watchdog.
 #
 time=* * * * *
 type=Calendar
-desc=SEC check
-action=write @@@LOGS@@@/calendar.log %s %J at %t
+desc=SEC Process check
+action=shellcmd (ps -axwwo 'start,ruser,uid,command'  >> @@@LOGS@@@/ps.txt); \
+       shellcmd (netstat -STW -f inet  -p TCP         >> @@@LOGS@@@/net4.txt); \
+       shellcmd (netstat -STW -f inet6 -p TCP         >> @@@LOGS@@@/net6.txt); \
+       write @@@LOGS@@@/calendar.log %s %J at %t
+
 
