@@ -1,0 +1,136 @@
+
+
+#
+#
+#CONTEXTS:
+#    BUSINESS_HOURS
+#    OFF_HOURS
+#    VACATION
+#    MAINTENANCE
+#
+#WANT:
+# %CPU STARTED LOGIN COMMAND          MSGSND MSGRCV OUBLK RUID RUSER  UID
+#ps -axwwo '%cpu,start,logname,msgsnd,msgrcv,oublk,ruid,ruser,uid,command'
+#
+#%cpu - CPU utilization of the process
+#start - time command started (%H:%M, %a%H, %e%b%y)
+#logname - login name of user who started session
+#command - command and arguments (truncated if not last argument)
+#msgsnd - total messages send (writes on pipes/sockets)
+#msgrcv - total messages received (reads from pipes/sockets)
+#oublk - total blocks written to disk
+#ruid - real user id
+#ruser - real user name
+#uid - effective user id
+#
+#
+#
+#
+#CHECKING:
+#    Editing
+#        vi, ee, ed, sed, ex
+#    Package additions (via syslog)
+#    Network connections (via netstat)
+#    Network traffic (via ??? iostat??)
+#        ftp, sftp, scp, rsync, fetch, ping, nfs
+#    CPU Usage
+#    Archiving
+#        tar, zip, bzip, 
+#    Changed system files (via mtree)
+#
+#   0.0 16:10   root       0      0     0    0 root     0 -sh (sh)
+#   0.0 16:28   root       0      0    24    0 root     0 vi activity.rules.setup
+#   0.0 16:10   root       2      0     3    0 root     0 login [pam] (login)
+#   0.0 16:10   root       0      0     0    0 root     0 -sh (sh)
+#   0.0 09:13   root      1170     1174      6  123 ntpd        123 /usr/sbin/ntpd -p /var/db/ntp/ntpd.pid -c /etc/ntp.conf -f /var/db/ntp/ntpd.drift -g
+#   0.0 09:17   jpb     720703   719681      0 1001 jpb        1001 /usr/local/lib/firefox/firefox -contentproc -appDir /usr/local/lib/firefox/browser 6 utility
+#
+#
+#         STARTED   LOGIN   MSGSND  MSGRCV  OUBLK   RUID    RUSER    UID     CMD
+#pattern =(\S+?)\s+(\S+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(.*?)$
+#
+#This rule needs to generate the process list with the command:
+# ps -axwwo 'start,logname,msgsnd,msgrcv,oublk,ruid,ruser,uid,command'
+#and feed the output of that command back into Sec for the next rule.
+#
+
+
+# Set for Business Hours
+#type=Calendar
+#time=* 7-23 * * 1,2,3,4,5
+#desc=BUSINESS_HOURS
+#context=!BUSINESS_HOURS
+#action=create %s; assign %J "BUSINESS HOURS";\
+#       write - Starting %J at %t.;\
+#       delete OFF_HOURS;
+#
+#
+## Set for Off Hours
+#type=Calendar
+#time=* 0-6,23 * * *
+#context=!OFF_HOURS
+#desc=OFF_HOURS
+#action=create %s; assign %J "OFF HOURS";\
+#       write - Starting  %J %t.;\
+#       delete BUSINESS_HOURS;
+#
+
+# This calendar rule is a health check. Writes to stdout every
+# minute. This could be used for visual confirmation
+# that SEC is still running or implementing a watchdog.
+#
+#time=* * * * *
+#type=Calendar
+#desc=SEC Process check
+#action=shellcmd (ps -axwwo 'start,ruser,uid,command'  >> /tmp/ps.txt); \
+#       shellcmd (netstat -STW -f inet  -p TCP         >> /tmp/net4.txt); \
+#       shellcmd (netstat -STW -f inet6 -p TCP         >> /tmp/net6.txt); 
+#
+
+
+
+# User Activity
+#            1       2       3       4
+#        STARTED   RUSER    UID     CMD
+#pattern =(\S+?)\s+(\S+)\s+(\d+)\s+(.*?)$
+# 
+type = Single
+ptype = RegExp
+pattern =(\S+?)\s+(\S+)\s+(\d+)\s+(vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+desc = echo input line
+action = write - %t [$1] [$2] [$3] [$4] [$5] [%J]
+
+
+# Network activity.
+#Active Internet connections
+#Proto Rexmit OOORcv 0-win  Local Address                                 Foreign Address
+#tcp6       0      0      0 2600:1700:3901:4940:c6ef:bbff:fe7e:fb9c.11313 2606:4700:4400::6812:202f.443                 
+#tcp4       0      0      0 192.168.1.152.60886                           34.107.243.93.https                           
+#tcp6       0      0      0 ::1.23012                                     ::1.44200                                     
+#tcp6       0      0      0 2600:1700:3901:4940:c6ef:bbff:fe7e:fb9c.11922 2607:f8b0:4002:c03::5e.443                    
+#tcp4       0      0      0 192.168.1.152.63247                           23.4.43.62.http                               
+#
+#            1                         2       3
+#         Proto                      Local   Foreign
+#pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
+# 
+type = Single
+ptype = RegExp
+pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
+desc = echo input line
+action = write - %t [$1] [$2] [$3] [%J]
+
+
+
+
+#
+## Cleanup Rule
+#
+#type = Single
+#rem = RULE 999: Cleanup rule.  \
+#      Anything not handled goes into NOT_MATCHED_AUTH.TXT
+#ptype = RegExp
+#pattern =.
+#desc = echo input line
+#action = write @@@LOGS@@@/NOT_MATCHED_AUTH.TXT $0 AUTH_999
+#
