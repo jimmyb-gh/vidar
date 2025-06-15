@@ -20,10 +20,12 @@ SHOW_ENV="N"
 # Fixup logs.
 echo "Value VIDAR_LOGS=${VIDAR_LOGS} will be used..."
 echo "s]@@@LOGS@@@]${VIDAR_LOGS}]" > f.sed
+echo "s]@@@INPUT@@@]${VIDAR_INPUT}]" >> f.sed
 
-cat auth.rules.setup     | sed  -f f.sed   > auth.rules
-cat email.rules.setup    | sed  -f f.sed   > email.rules
-cat nginx.rules.setup    | sed  -f f.sed   > nginx.rules
-cat calendar.rules.setup | sed  -f f.sed   > calendar.rules
+cat activity.rules.setup   | sed  -f f.sed   > activity.rules
+cat auth.rules.setup       | sed  -f f.sed   > auth.rules
+cat email.rules.setup      | sed  -f f.sed   > email.rules
+cat nginx.rules.setup      | sed  -f f.sed   > nginx.rules
+cat calendar.rules.setup   | sed  -f f.sed   > calendar.rules
 
 echo "Fixup done."
