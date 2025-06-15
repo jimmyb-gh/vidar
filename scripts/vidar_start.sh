@@ -38,9 +38,10 @@ fi
 
 #
 # Ensure we have all the directories we need.
-#
+# "input" here is local input for ps.txt, net4.txt, and net6.txt
+# 
 
-for i in logs pids scripts sec utils
+for i in logs pids scripts sec utils input
 do
   echo "Checking directories: [${VIDAR_HOME}/${i}]"
   mkdir -p ${VIDAR_HOME}/${i}
