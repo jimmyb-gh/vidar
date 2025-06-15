@@ -1,3 +1,9 @@
+#
+#  NOTE FOR ALL RULES:
+#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
+#  WRITE TO FILES FOR EVERYTHING ELSE.
+#
+
 # Rules to manage /var/log/nginx/access.log
 # Tue Jun  3 17:39:49 UTC 2025
 #
@@ -33,6 +39,7 @@ rem = RULE 1: Disallow null HTTP method
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\"
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
          write - $1
 
@@ -44,6 +51,7 @@ rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
          write - $1
 
@@ -55,6 +63,7 @@ rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
          write - $1
 
@@ -69,6 +78,7 @@ rem = RULE 4: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/|/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_4; \
 
 
@@ -79,6 +89,7 @@ rem = RULE 5: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_5; \
 
 
@@ -89,6 +100,7 @@ rem = RULE 6: Allow Pattern. \
 ptype = RegExp
 pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_6; \
 
 
@@ -103,6 +115,7 @@ rem = RULE 100: Block on actual malice.  There is no 3 strikes mode.
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = Actual malice from $1
+context = NGINX
 action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
          write - $1
 
@@ -114,6 +127,7 @@ rem = RULE 999: Cleanup rule. \
 ptype = RegExp
 pattern =.
 desc = echo input line
+context = NGINX
 action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_999
 
 

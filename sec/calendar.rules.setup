@@ -1,3 +1,9 @@
+#
+#  NOTE FOR ALL RULES:
+#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
+#  WRITE TO FILES FOR EVERYTHING ELSE.
+#
+
 # Contexts set by calendar rules.
 #
 # BUSINESS_HOURS - a context for business hours (7:00am to 11:59pm, M-F)
@@ -22,44 +28,48 @@
 
 # Set for Business Hours
 type=Calendar
-time=* 7-23 * * 1,2,3,4,5
+time=* 6-20 * * 1,2,3,4,5
 desc=BUSINESS_HOURS
 context=!BUSINESS_HOURS
 action=create %s; assign %J "BUSINESS HOURS";\
-       write - Starting %J at %t.;\
+       write @@@LOGS@@@/sec.out Starting %J at %t.;\
        delete OFF_HOURS;
 
 
 # Set for Off Hours
 type=Calendar
-time=* 0-6,23 * * *
+time=* 0-5,21-23 * * *
 context=!OFF_HOURS
 desc=OFF_HOURS
 action=create %s; assign %J "OFF HOURS";\
-       write - Starting  %J %t.;\
+       write @@@LOGS@@@/sec.out Starting  %J %t.;\
        delete BUSINESS_HOURS;
 
 
-## This calendar rule is a health check. Writes to stdout every
-## minute. This could be used for visual confirmation
-## that SEC is still running or implementing a watchdog.
-##
-#time=* * * * *
-#type=Calendar
-#desc=SEC check
-#action=write @@@LOGS@@@/calendar.log %s %J at %t
-#
+# Set context for Off Hours on Sat, Sun
+type=Calendar
+time=* * * * 6,7
+context=!OFF_HOURS
+desc=OFF_HOURS
+action=create %s; assign %J OFF_HOURS;\
+       write @@@LOGS@@@/sec.out Starting  %J %t.;\
+       delete BUSINESS_HOURS;
 
-# This calendar rule is a health check. Writes to stdout every
-# minute. This could be used for visual confirmation
-# that SEC is still running or implementing a watchdog.
+
+# This calendar rule is an actvity check.
+# Every minute a process list is run and saved to file /tmp/ps.txt
+# Only the requested items are saved (cpu, start, ruser, uid, command).
+# Then two lists of network processes are done, one for ipv4
+# and one for ipv6.
 #
 time=* * * * *
 type=Calendar
 desc=SEC Process check
-action=shellcmd (ps -axwwo 'start,ruser,uid,command'  >> @@@LOGS@@@/ps.txt); \
-       shellcmd (netstat -STW -f inet  -p TCP         >> @@@LOGS@@@/net4.txt); \
-       shellcmd (netstat -STW -f inet6 -p TCP         >> @@@LOGS@@@/net6.txt); \
-       write @@@LOGS@@@/calendar.log %s %J at %t
+action=shellcmd (ps -axwwo '%%cpu,start,ruser,uid,command' >> @@@INPUT@@@/ps.txt; \
+                 sleep 1; \
+                 netstat -STW -f inet  -p TCP >> @@@INPUT@@@/net4.txt ; \
+                 sleep 1; \
+                 netstat -STW -f inet6 -p TCP >> @@@INPUT@@@/net6.txt) ;\
+       write @@@LOGS@@@/sec.out Currently in %J
 
 
