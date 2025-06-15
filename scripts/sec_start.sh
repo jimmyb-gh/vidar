@@ -40,6 +40,7 @@ trap cleanup INT TERM
 # rules files have been fixed up with fixup_rules.sh
 #
 
+# --debug  : sec debug level 4=only necessary output
 # --tail   : keep reading input, even if changed
 # --log    : sec output goes here
 # --pid    : file holds sec process id
@@ -49,17 +50,25 @@ trap cleanup INT TERM
 # NOTE: Do not use --detach.  Sec is daemonized and this messes
 #       up the input stream for vidar_add2BAD.sh (which then exits).
 
+# Input files with "=WORD" are applying the internal context WORD.
+# The rules files now have internal contexts for each of these.
+
 /usr/local/bin/sec  \
+  --debug=4 \
   --tail \
-  --log=${VIDAR_LOGS}/sec.log \
+  --log=${VIDAR_LOGS}/sec.out \
   --pid=${VIDAR_PIDS}/sec.pid \
+  --conf=${VIDAR_SEC}/activity.rules \
   --conf=${VIDAR_SEC}/auth.rules \
+  --conf=${VIDAR_SEC}/calendar.rules \
   --conf=${VIDAR_SEC}/email.rules \
   --conf=${VIDAR_SEC}/nginx.rules \
-  --conf=${VIDAR_SEC}/calendar.rules \
-  --input=${AUTHLOG} \
-  --input=${EMAILLOG} \
-  --input=${NGINXLOG} 
+  --input=${AUTHLOG}]=AUTH \
+  --input=${EMAILLOG}=EMAIL \
+  --input=${NGINXLOG}=NGINX \
+  --input=${PSLOG}=PROC \
+  --input=${NET4LOG}=NETW \
+  --input=${NET6LOG}=NETW 
 
 exit 0
 
