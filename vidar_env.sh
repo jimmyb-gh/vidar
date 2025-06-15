@@ -24,6 +24,9 @@ VIDAR_LOGS=${VIDAR_HOME}/logs
 # Vidar PIDS directory.  All pids go in this directory.
 VIDAR_PIDS=${VIDAR_HOME}/pids
 
+# Vidar input logs
+VIDAR_INPUT=${VIDAR_HOME}/input
+
 # Vidar input files.
 # Normally these should be the actual files on the current system
 # but they can be overridden here.
@@ -33,9 +36,13 @@ VIDAR_PIDS=${VIDAR_HOME}/pids
 #NGINXLOG=/var/log/nginx/access.log
 
 # These are INPUT logs, not OUTPUT logs.
-AUTHLOG=/root/src/input/auth.log
-EMAILLOG=/root/src/input/maillog
-NGINXLOG=/root/src/input/access.log
+AUTHLOG=${VIDAR_INPUT}/auth.log
+EMAILLOG=${VIDAR_INPUT}/maillog
+NGINXLOG=${VIDAR_INPUT}/access.log
+PSLOG=${VIDAR_INPUT}/ps.txt
+NET4LOG=${VIDAR_INPUT}/net4.txt
+NET6LOG=${VIDAR_INPUT}/net6.txt
+
 
 # Print the environment only if explicitly asked to do so.
 #
@@ -47,9 +54,13 @@ then
   echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
   echo "VIDAR_UTILS=   [${VIDAR_UTILS}]"
   echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
+  echo "VIDAR_INPUT=   [${VIDAR_INPUT}]"
   echo "INPUTS:                                          OUTPUTS:"
   echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
   echo "EMAILLOG= [${EMAILLOG}]"
   echo "NGINXLOG= [${NGINXLOG}]"
+  echo "PSLOG   = [${PSLOG}]"
+  echo "NET4LOG = [${NET4LOG}]"
+  echo "NET6LOG = [${NET6LOG}]"
 fi
 
