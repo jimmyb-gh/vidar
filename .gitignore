@@ -12,4 +12,4 @@ sec/calendar.rules
 sec/email.rules
 sec/nginx.rules
 pids/
-
+input/
