@@ -11,7 +11,7 @@ SHOW_ENV="N"
 
 # set -x
 
-for i in ${AUTHLOG} ${EMAILLOG} ${NGINXLOG}
+for i in ${AUTHLOG} ${EMAILLOG} ${NGINXLOG} ${AUTHLOG}
 do
   if [ ! -f ${i} ]
   then
@@ -63,7 +63,7 @@ trap cleanup INT TERM
   --conf=${VIDAR_SEC}/calendar.rules \
   --conf=${VIDAR_SEC}/email.rules \
   --conf=${VIDAR_SEC}/nginx.rules \
-  --input=${AUTHLOG}]=AUTH \
+  --input=${AUTHLOG}=AUTH \
   --input=${EMAILLOG}=EMAIL \
   --input=${NGINXLOG}=NGINX \
   --input=${PSLOG}=PROC \
