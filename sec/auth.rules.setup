@@ -85,6 +85,60 @@ context = AUTH
 action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_6; \
          write - $1
 
+#######################################################################################
+
+# Rules 10 and above are for OFF_HOURS notifications.
+# The context keyword takes one internal context and one external context
+# in a logical AND operation. Effectively, it says "If this line is coming
+# from a file with internal context 'AUTH' and if it happens during external
+# context 'OFF_HOURS', process the line."
+#
+
+
+type = Single
+rem = RULE 10: If the following pattern is matched: \
+      "power-down by jpb"  or "power-down by root"
+ptype = RegExp
+pattern =power-down by (\S+)
+desc = echo input line
+context = AUTH && OFF_HOURS
+action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_10] ; \
+         add %C %t [$0] [AUTH_10]
+
+
+type = Single
+rem = RULE 11: If the following pattern is matched: \
+      "ROOT LOGIN (root) ON ttyv4"
+ptype = RegExp
+pattern =ROOT LOGIN \((\S+)\) ON (\S+)
+desc = echo input line
+context = AUTH && OFF_HOURS
+action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_11] ; \
+         add %C %t [$0] [AUTH_11]
+
+
+type = Single
+rem = RULE 12: If the following pattern is matched: \
+      "BAD SU jpb to root on /dev/ttyu0"
+ptype = RegExp
+pattern =BAD SU (\S+) to root on (\S+)
+desc = echo input line
+context = AUTH && OFF_HOURS
+action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_12] ; \
+         add %C %t [$0] [AUTH_12]
+
+
+type = Single
+rem = RULE 13: If the following pattern is matched: \
+      "3 LOGIN FAILURES ON ttyu0, root"
+ptype = RegExp
+pattern =(\d+) LOGIN FAIL(.*?) ON (\S+)(.*)
+desc = echo input line
+context = AUTH && OFF_HOURS
+action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_13] ; \
+         add %C %t [$0] [AUTH_13]
+
+
 # Cleanup Rule
 
 type = Single
