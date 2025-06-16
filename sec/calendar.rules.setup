@@ -31,8 +31,8 @@ type=Calendar
 time=* 6-20 * * 1,2,3,4,5
 desc=BUSINESS_HOURS
 context=!BUSINESS_HOURS
-action=create %s; assign %J "BUSINESS HOURS";\
-       write @@@LOGS@@@/sec.out Starting %J at %t.;\
+action=create %s; assign %C "BUSINESS HOURS";\
+       write @@@LOGS@@@/sec.out Starting %C at %t.;\
        delete OFF_HOURS;
 
 
@@ -41,8 +41,8 @@ type=Calendar
 time=* 0-5,21-23 * * *
 context=!OFF_HOURS
 desc=OFF_HOURS
-action=create %s; assign %J "OFF HOURS";\
-       write @@@LOGS@@@/sec.out Starting  %J %t.;\
+action=create %s; assign %C "OFF HOURS";\
+       write @@@LOGS@@@/sec.out Starting  %C %t.;\
        delete BUSINESS_HOURS;
 
 
@@ -51,8 +51,8 @@ type=Calendar
 time=* * * * 6,7
 context=!OFF_HOURS
 desc=OFF_HOURS
-action=create %s; assign %J OFF_HOURS;\
-       write @@@LOGS@@@/sec.out Starting  %J %t.;\
+action=create %s; assign %C OFF_HOURS;\
+       write @@@LOGS@@@/sec.out Starting  %C %t.;\
        delete BUSINESS_HOURS;
 
 
@@ -70,6 +70,6 @@ action=shellcmd (ps -axwwo '%%cpu,start,ruser,uid,command' >> @@@INPUT@@@/ps.txt
                  netstat -STW -f inet  -p TCP >> @@@INPUT@@@/net4.txt ; \
                  sleep 1; \
                  netstat -STW -f inet6 -p TCP >> @@@INPUT@@@/net6.txt) ;\
-       write @@@LOGS@@@/sec.out Currently in %J
+       write @@@LOGS@@@/sec.out Currently in %C
 
 
