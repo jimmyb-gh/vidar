@@ -8,7 +8,7 @@
 # Check for unusual activity.
 #
 # User activity check from .../ps.txt
-# This rule looks for the specified commands being run and notes context (%J from calendar rules).
+# This rule looks for the specified commands being run and notes context (%C from calendar rules).
 #                1           2       3       4       5                                                   6
 #               CPU       STARTED  RUSER    UID     CMD                                                 ARGS
 #pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
@@ -19,11 +19,11 @@ pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(ping|nc|ncat|cc|perl|pyth|vi|
 desc = echo input line
 context = PROC
 continue=TakeNext
-action = write @@@LOGS@@@/sec.out  %t [$1] [$2] [$3] [$4] [$5] [$6] [%J] ; \
-         add %J %t [$1] [$2] [$3] [$4] [$5] [$6] [%J]
+action = write @@@LOGS@@@/sec.out  %t [$1] [$2] [$3] [$4] [$5] [$6] [%C] ; \
+         add %C %t [$1] [$2] [$3] [$4] [$5] [$6] [%C]
 
 
-#Network Activity  from .../net4.txt and .../net6.txt and notes context (%J from calendar rules).
+#Network Activity  from .../net4.txt and .../net6.txt and notes context (%C from calendar rules).
 #Active Internet connections
 #Proto Rexmit OOORcv 0-win  Local Address                                 Foreign Address
 #tcp6       0      0      0 2600:1700:3901:4940:c6ef:bbff:fe7e:fb9c.11313 2606:4700:4400::6812:202f.443
@@ -42,40 +42,17 @@ pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
 desc = echo input line
 context = NETW
 continue=TakeNext
-action = write @@@LOGS@@@/sec.out %t [$1] [$2] [$3] [%J] ; \
-         add %J %t [$1] [$2] [$3] [%J]
+action = write @@@LOGS@@@/sec.out %t [$1] [$2] [$3] [%C] ; \
+         add %C %t [$1] [$2] [$3] [%C]
 
 
-#
-# Login activity from  /var/log/auth and notes context (%J from calendar rules).
-#Jun 11 14:55:59 firewall login[24539]: login on ttyu0 as root
-#Jun 11 14:55:59 firewall login[24539]: ROOT LOGIN (root) ON ttyu0
-#Jun 11 16:10:51 firewall login[16912]: ROOT LOGIN (root) ON ttyv0
-#Jun 13 15:50:51 firewall su[3345]: jpb to root on /dev/pts/1
-#
-#                            1         2          3       4
-#Jun 11 16:10:38         firewall login[205]: login on ttyu0 as root
-#pattern =\S+\s+\d+\s+\S+\s+(\S+)\s+(\S+)\s+(login|ROOT)(.*)
-#
-type = Single
-ptype = RegExp
-pattern =\S+\s+\d+\s+\S+\s+(\S+)\s+(\S+)\s+((login|ROOT)|(\S+ to root))(.*)
-desc = echo input line
-context = AUTH
-continue=TakeNext
-action = write @@@LOGS@@@/sec.out %t [$1] [$2] [$3] [$4] [%J] ; \
-         add %J %t [$1] [$2] [$3] [$4] [%J]
-
-
-# Report Rule for context %J
+# Report Rule for context %C
 
 type=Single
 ptype=RegExp
 pattern=ContextReport
-desc=$0
+desc=Generate Report
 context = PROC
-context=OFF_HOURS
-action=report OFF_HOURS   /bin/cat
-
+action=report %C  /bin/cat >> @@@LOGS@@@/report_of_%C_%.year%.mon%.mday%.hour%.min
 
 
