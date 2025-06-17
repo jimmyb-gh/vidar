@@ -28,14 +28,15 @@ then
   usage;
 fi
 
+DATESPEC=`date -j "+%Y%m%dT%H%M%S"`
 
 echo -n "Dumping BAD ... "
 
 COMMAND="/sbin/ipfw table BAD list"
 
-# echo "${COMMAND} \> ${VIDAR_LOGS}/BAD.TXT"
+# echo "${COMMAND} \> ${VIDAR_LOGS}/BAD.${DATESPEC}"
 
-STATUS=`${COMMAND} > ${VIDAR_LOGS}/BAD.TXT`
+STATUS=`${COMMAND} > ${VIDAR_LOGS}/BAD.${DATESPEC}`
 
 if [ $? -ne 0 ]
 then
@@ -45,7 +46,7 @@ then
   exit 2
 else
   echo "done. BAD table dumped in ${VIDAR_LOGS}."
-  ls -al ${VIDAR_LOGS}/BAD.TXT
+  ls -al ${VIDAR_LOGS}/BAD.${DATESPEC}
   echo
 fi
 
