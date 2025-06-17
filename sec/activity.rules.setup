@@ -15,7 +15,7 @@
 # 
 type = Single
 ptype = RegExp
-pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
 desc = echo input line
 context = PROC
 continue=TakeNext
@@ -53,6 +53,6 @@ ptype=RegExp
 pattern=ContextReport
 desc=Generate Report
 context = PROC
-action=report %C  /bin/cat >> @@@LOGS@@@/report_of_%C_%.year%.mon%.mday%.hour%.min
+action=report %C  /bin/cat >> @@@LOGS@@@/report_of_%.year%.mon%.mday\T%.hour%.min
 
 
