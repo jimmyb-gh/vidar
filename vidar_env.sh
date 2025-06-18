@@ -21,6 +21,9 @@ VIDAR_UTILS=${VIDAR_HOME}/utils
 #VIDAR_LOGS=/var/log/vidar
 VIDAR_LOGS=${VIDAR_HOME}/logs
 
+# SEC dump file - used for debugging
+VIDAR_DUMP=${VIDAR_LOGS}/sec.dump
+
 # Vidar PIDS directory.  All pids go in this directory.
 VIDAR_PIDS=${VIDAR_HOME}/pids
 
@@ -55,11 +58,11 @@ then
   echo "VIDAR_UTILS=   [${VIDAR_UTILS}]"
   echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
   echo "VIDAR_INPUT=   [${VIDAR_INPUT}]"
-  echo "INPUTS:                                          OUTPUTS:"
+  echo "INPUTS:                                                 OUTPUTS:"
   echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
   echo "EMAILLOG= [${EMAILLOG}]"
-  echo "NGINXLOG= [${NGINXLOG}]"
-  echo "PSLOG   = [${PSLOG}]"
+  echo "NGINXLOG= [${NGINXLOG}]              SEC Dump (Debug) File:"
+  echo "PSLOG   = [${PSLOG}]              VIDAR_DUMP=[${VIDAR_DUMP}]"
   echo "NET4LOG = [${NET4LOG}]"
   echo "NET6LOG = [${NET6LOG}]"
 fi
