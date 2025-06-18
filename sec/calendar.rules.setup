@@ -29,11 +29,15 @@
 # Set for Business Hours
 type=Calendar
 time=* 6-20 * * 1,2,3,4,5
-desc=BUSINESS_HOURS
 context=!BUSINESS_HOURS
-action=create %s; assign %C "BUSINESS HOURS";\
-       write @@@LOGS@@@/sec.out Starting %C at %t.;\
-       delete OFF_HOURS;
+desc=BUSINESS_HOURS
+action=create BUSINESS_HOURS 0  ; \
+       assign %C  %s; \ 
+       write @@@LOGS@@@/sec.out  Starting  %C at %t.;\
+       add %C Started %C at %t.; \
+       report OFF_HOURS /bin/cat >> @@@LOGS@@@/OFF_HOURS.rpt; \
+       delete OFF_HOURS
+
 
 
 # Set for Off Hours
@@ -41,9 +45,14 @@ type=Calendar
 time=* 0-5,21-23 * * *
 context=!OFF_HOURS
 desc=OFF_HOURS
-action=create %s; assign %C "OFF HOURS";\
-       write @@@LOGS@@@/sec.out Starting  %C %t.;\
-       delete BUSINESS_HOURS;
+action=create OFF_HOURS 0 ; \
+       assign %C  %s; \ 
+       write @@@LOGS@@@/sec.out Starting  %C at %t.;\
+       add %C Started %C at %t. ; \
+       report BUSINESS_HOURS /bin/cat >> @@@LOGS@@@/BUSINESS_HOURS.rpt; \
+       delete BUSINESS_HOURS
+
+
 
 
 # Set context for Off Hours on Sat, Sun
@@ -69,7 +78,8 @@ action=shellcmd (ps -axwwo '%%cpu,start,ruser,uid,command' >> @@@INPUT@@@/ps.txt
                  sleep 1; \
                  netstat -STW -f inet  -p TCP >> @@@INPUT@@@/net4.txt ; \
                  sleep 1; \
-                 netstat -STW -f inet6 -p TCP >> @@@INPUT@@@/net6.txt) ;\
+                 netstat -STW -f inet6 -p TCP >> @@@INPUT@@@/net6.txt) ; \
+       add %C SEC process check at %t ; \
        write @@@LOGS@@@/sec.out Currently in %C
 
 
