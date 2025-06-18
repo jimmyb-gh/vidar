@@ -44,20 +44,24 @@ trap cleanup INT TERM
 # --tail   : keep reading input, even if changed
 # --log    : sec output goes here
 # --pid    : file holds sec process id
+# --dump   : sec dump file for debugging
 # --conf   : a sec configuration file (multiples possible)
 # --input  : a sec input file (multiples possible)
+# --intcontexts : explicitly set option for using internal contexts
 
 # NOTE: Do not use --detach.  Sec is daemonized and this messes
 #       up the input stream for vidar_add2BAD.sh (which then exits).
 
 # Input files with "=WORD" are applying the internal context WORD.
 # The rules files now have internal contexts for each of these.
+# See sec(1) for details on internal contexts.
 
 /usr/local/bin/sec  \
   --debug=4 \
   --tail \
   --log=${VIDAR_LOGS}/sec.out \
   --pid=${VIDAR_PIDS}/sec.pid \
+  --dump=${VIDAR_DUMP}/sec.dump \
   --conf=${VIDAR_SEC}/activity.rules \
   --conf=${VIDAR_SEC}/auth.rules \
   --conf=${VIDAR_SEC}/calendar.rules \
@@ -68,7 +72,8 @@ trap cleanup INT TERM
   --input=${NGINXLOG}=NGINX \
   --input=${PSLOG}=PROC \
   --input=${NET4LOG}=NETW \
-  --input=${NET6LOG}=NETW 
+  --input=${NET6LOG}=NETW  \
+  --intcontexts
 
 exit 0
 
