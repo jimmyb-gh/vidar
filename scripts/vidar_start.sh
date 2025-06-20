@@ -10,7 +10,7 @@ usage()
 {
   echo
   echo "usage: vidar_start.sh  - starts Vidar."
-  echo "       Also loads rules '650** allow ip from any to any',"
+  echo "       Also loads IPFW rules '650** allow ip from any to any',"
   echo "       starts the sec_start.sh script, and starts the"
   echo "       vidar_add2BAD.sh script sending output to BAD.out"
   echo "       in the configured logs directory."
@@ -87,7 +87,7 @@ done
 # On boot, remove all old logs.
 # This path is HARDCODED for safety.
 
-rm /root/src/vidar/logs/*
+#rm /root/src/vidar/logs/*
 
 
 # Remove all logs.  Safely.
@@ -102,13 +102,22 @@ then # The VIDAR_LOGS variable is NOT SET. Bail out.
 else
     for i in "${VIDAR_LOGS}"/*
     do
-        if [ -f "${i}" ]
+#        echo "[filename: ${i}]"
+        # Skip the symbolic link "BAD.txt".
+        if [ -L "${i}" ]
         then
-#          echo "Adding ${i} to OLDLOGS"
-           OLDLOGS="${OLDLOGS} ${i}"
+            echo "Skipping symbolic link: [${i}]"
+        else
+            if [ -f "${i}" ]
+            then
+#                echo "Adding ${i} to OLDLOGS"
+                OLDLOGS="${OLDLOGS} ${i}"
+            fi
         fi
     done
 fi
+
+echo "OLDLOGS=[${OLDLOGS}]"
 
 if [ ! -z "${OLDLOGS}" ]
 then 
