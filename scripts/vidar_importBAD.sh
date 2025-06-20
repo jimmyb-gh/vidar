@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #   vidar_importBAD.sh  - (re)import the entire BAD table back into IPFW.
-#                         Input is the .../logs/BAD.TXT file from vidar_dumpBAD.sh
+#                         Input is the .../logs/BAD.txt file from vidar_dumpBAD.sh
 #      Script will exit if a record is already in the IPFW BAD table.
 #      Must be root to run this script.
 
@@ -31,8 +31,8 @@ then
 fi
 
 
-echo -n "Importing BAD.TXT dump file ... "
-LINES=`wc -l  ${VIDAR_LOGS}/BAD.TXT| awk '{print $1}'`
+echo -n "Importing BAD.txt dump file ... "
+LINES=`wc -l  ${VIDAR_LOGS}/BAD.txt| awk '{print $1}'`
 echo "${LINES} lines in dump file."
 
 COMMAND="/sbin/ipfw table BAD add "
@@ -40,7 +40,7 @@ COMMAND="/sbin/ipfw table BAD add "
 COUNT=0
 
 
-for i in `cat ${VIDAR_LOGS}/BAD.TXT | awk '{print $1}'`
+for i in `cat ${VIDAR_LOGS}/BAD.txt | awk '{print $1}'`
 do
     if [ "X${i}" = "X9999:9999:9999:9999:9999:9999:9999:9999/128" ]
     then
@@ -53,7 +53,7 @@ do
     then
         echo
         echo "Error on ipfw command [${COMMAND}]. Return code [${STATUS}]"
-        echo "  Check ipfw module and BAD.TXT, and try again."
+        echo "  Check ipfw module and BAD.txt, and try again."
         exit 2
     else
         COUNT=$((COUNT + 1))
