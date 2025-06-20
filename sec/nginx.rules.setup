@@ -3,131 +3,465 @@
 #  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
 #  WRITE TO FILES FOR EVERYTHING ELSE.
 #
-
+#
 # Rules to manage /var/log/nginx/access.log
 # Tue Jun  3 17:39:49 UTC 2025
+# rem = RULE 10: Allow Pattern.  Whitelisted.
+# rem = RULE 15: Allow Pattern.  Whitelisted.
+# rem = RULE 20: Allow Pattern.  Whitelisted.
+#
+# rem = RULE 1000: Disallow null HTTP method 
+# rem = RULE 1010: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE \
+# rem = RULE 1020: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+# rem = RULE 1030: Block cgi-bin malice.  Out on first strike. \
+#
+
+# rem = RULE 2000: Dot_something probers
+# rem = RULE 2010: A-P probers
+# rem = RULE 2020: a-b probers
+# rem = RULE 2030: c-d probers
+# rem = RULE 2040: e-m probers
+# rem = RULE 2050: n-v probers
+# rem = RULE 2060: wordpress probers
+# rem = RULE 2070: miscellaneous crap
+# rem = RULE 2080: HEAD bangers
+# rem = RULE 2090: POSTer children
+#
+# rem = RULE 9999: Cleanup rule. \
 #
 # =============  WHITELIST VERSION  ========================
-# Legitimate methods
-# GET|POST|HEAD|OPTIONS|PUT|PATCH
-# CONNECT|TRACE|DELETE
 #
-#  Here is the applicable pseudocode:
-# 
-# if (it's a null method)  #RULE_1
+# if (it's on the whitelist of rules)   Rules 1 - 999
+#     allow
+# endif
+# if (it's a null method)  Rule 1000
 #     block IP immediately
-# else
-#     if (it's a CONNECT, TRACE, or DELETE method) #RULE_2
+#  
+# elseif (it's a CONNECT, TRACE, or DELETE method) Rule 1010
 #     block IP immediately
-#     else
-#         if ("if it's not on this list, block it: GET|POST|HEAD|OPTIONS|PUT|PATCH) #RULE_3
-#             block immediately
-#         else
-#             (if it is on the above list AND it's one of these patterns)
-#                 allow (i.e. write to ALLOWED.TXT) RULE_4, RULE_5, RULE_6
-#         else
-#             (if it is on the above list AND NOT one of the patterns in RULE_4, RULE_5, and RULE_6)
-#                  BLOCKED_NGINX.TXT RULE_100
-#         endif
-#     endif
+#
+# elseif ("if it's not on this list, block it: GET|POST|HEAD|OPTIONS|PUT|PATCH) Rule 1020
+#     block immediately
+#
+# elseif Rules 2000 - 2090 handle probers, HEAD bangers, POSTies, and other crap.
+#
+# else if it hits the cleanup rule (Rule 9999), save it in NOT_MATCHED_NGINX.TXT
+#
 # endif
 #
+#
+#####################################  WHITELIST  ##################################### 
+
+
+#NOTE: This rule allows "GET / " up to 10 times in 60 seconds.
+type=SingleWithThreshold
+rem=RULE 8: Too many "GET / " requests.  \
+    SingleWithThreshold - 200 X 10 within 60 seconds  
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
+desc=too many "GET / " requests from $1
+context=NGINX
+thresh=10
+window=60
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_8; \
+       write - $1
 
 
 type = Single
-rem = RULE 1: Disallow null HTTP method 
+rem = RULE 10: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_10; \
+
+
+type = Single
+rem = RULE 15: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_15; \
+
+
+type = Single
+rem = RULE 20: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
+
+
+#####################################  END WHITELIST  ##################################### 
+
+
+
+type = Single
+rem = RULE 1000: Disallow null HTTP request. \
+      One strike and you're out.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"\" (400).*
+desc = null HTTP request from $1
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1000; \
+         write - $1
+
+
+type = Single
+rem = RULE 1005: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+      This pattern says: "if it's not on this list, block it.
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
+desc = invalid HTTP verbs
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1005; \
+         write - $1
+
+
+type=Single
+rem=RULE 1010: Check return status: E400 - bad request \
+    One strike and you're out.
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|POST) [^"]+" (400) [0-9]+.*
+desc=malformed request $3, immediate block of $1
+context=NGINX
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1010; \
+       write - $1
+
+
+type=Single
+rem=RULE 1013: Check return status: Invalid DNS over HTTP requests.  \
+    One strike and you're out.
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?dns=[^"]+"|\?name=[^"]+") (200).*
+desc=malformed request $3, immediate block of $1
+context=NGINX
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1010; \
+       write - $1
+
+
+# Other root parameter seekers.  
+type=SingleWithThreshold
+rem=RULE 1015: Root parameter seekers. \
+    Three strikes and you're out.
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?\S+[^"]+"|\?\s+[^"]+") (200).*
+desc=root parameter probes of $3 immediate block of $1
+context=NGINX
+thresh=3
+window=600
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1015; \
+       write - $1
+
+
+type=SingleWithThreshold
+rem=RULE 1020: Check return status: Too many 4xx errors \
+    SingleWithThreshold - 4xx X 5 within 120 seconds  
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET [^"]+" (4\d\d) [0-9]+.*
+desc=too many E4xx errors $3 from $1
+context=NGINX
+thresh=5
+window=120
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1020; \
+       write - $1
+
+
+type=SingleWithThreshold
+rem=RULE 1030: Check return status: Too many redirects \
+    SingleWithThreshold - 301 x 5 within 300 seconds 
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET [^"]+" (301) [0-9]+.*
+desc=too many redirect $3 from $1
+context=NGINX
+thresh=5
+window=300
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1030; \
+       write - $1
+
+
+##########################################################################################################
+#
+# At this point in the ruleset, everything we *should* block *should*  already be blocked.
+#
+# Keep track of things we missed.
+
+type = Single
+rem = RULE 9999: Cleanup rule. \
+      Anything not handled goes into NOT_MATCHED_NGINX.TXT 
+ptype = RegExp
+pattern =.
+desc = cleanup rule
+context = NGINX
+action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_9999
+
+
+
+
+
+
+
+
+
+
+
+#
+#  NOTE FOR ALL RULES:
+#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
+#  WRITE TO FILES FOR EVERYTHING ELSE.
+#
+#
+# Rules to manage /var/log/nginx/access.log
+# Tue Jun  3 17:39:49 UTC 2025
+# rem = RULE 10: Allow Pattern.  Whitelisted.
+# rem = RULE 15: Allow Pattern.  Whitelisted.
+# rem = RULE 20: Allow Pattern.  Whitelisted.
+#
+# rem = RULE 1000: Disallow null HTTP method 
+# rem = RULE 1010: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE \
+# rem = RULE 1020: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+# rem = RULE 1030: Block cgi-bin malice.  Out on first strike. \
+#
+# rem = RULE 2000: Dot_something probers
+# rem = RULE 2010: A-P probers
+# rem = RULE 2020: a-b probers
+# rem = RULE 2030: c-d probers
+# rem = RULE 2040: e-m probers
+# rem = RULE 2050: n-v probers
+# rem = RULE 2060: wordpress probers
+# rem = RULE 2070: miscellaneous crap
+# rem = RULE 2080: HEAD bangers
+# rem = RULE 2090: POSTer children
+#
+# rem = RULE 9999: Cleanup rule. \
+#
+# =============  WHITELIST VERSION  ========================
+#
+# if (it's on the whitelist of rules)   Rules 1 - 999
+#     allow
+# endif
+# if (it's a null method)  Rule 1000
+#     block IP immediately
+#  
+# elseif (it's a CONNECT, TRACE, or DELETE method) Rule 1010
+#     block IP immediately
+#
+# elseif ("if it's not on this list, block it: GET|POST|HEAD|OPTIONS|PUT|PATCH) Rule 1020
+#     block immediately
+#
+# elseif Rules 2000 - 2090 handle probers, HEAD bangers, POSTies, and other crap.
+#
+# else if it hits the cleanup rule (Rule 9999), save it in NOT_MATCHED_NGINX.TXT
+#
+# endif
+#
+#
+#####################################  WHITELIST  ##################################### 
+
+
+#NOTE: This rule allows "GET / "
+type = Single
+rem = RULE 10: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/\s+|/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_10; \
+
+
+type = Single
+rem = RULE 15: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_15; \
+
+
+type = Single
+rem = RULE 20: Allow Pattern. \
+      See pseudocode above. We don't care about the IP, just allow this line. \
+      Try matching several at a time. Saves time.
+ptype = RegExp
+pattern =^(.*?)\"GET (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
+desc = echo input line
+context = NGINX
+action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
+
+
+#####################################  END WHITELIST  ##################################### 
+
+
+type = Single
+rem = RULE 1000: Disallow null HTTP method 
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\"
 desc = echo input line
 context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1000; \
          write - $1
 
 
-
 type = Single
-rem = RULE 2: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE \
-      See also RULE_3 
+rem = RULE 1010: Block valid HTTP/1.1 and HTTP/2 methods CONNECT, TRACE, and DELETE 
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(CONNECT|TRACE|DELETE)[^"]+
 desc = echo input line
 context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1010; \
          write - $1
 
 
 type = Single
-rem = RULE 3: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
-      This pattern is the negative of those - i.e. "if it's not on this list, block it. \
-      See also RULE_2 
+rem = RULE 1020: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+      This pattern says: "if it's not on this list, block it.
 ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = echo input line
 context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_3; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1020; \
          write - $1
 
 
-##### ALLOW PATTERNS, Rules 4, 5, 6
-
-
 type = Single
-rem = RULE 4: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
-      Try matching several at a time. Saves time.
+rem = RULE 1030: Block cgi-bin malice.  Out on first strike. \
+      47.236.136.217 - - [24/Nov/2024:18:20:58 -0500] "POST /cgi-bin/%%32%65%%32%65/%%32%65%%32%65... 
 ptype = RegExp
-pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/|/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
+pattern =^(.*?) \- \- \[(.*?)\] \"POST \/cgi\-bin\/\%\%32\%65\%\%32\%65\/\%\%32\%65\%\%32\%65\/\%\%32\%65(.*)$
 desc = echo input line
 context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_4; \
-
-
-type = Single
-rem = RULE 5: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
-      Try matching several at a time. Saves time.
-ptype = RegExp
-pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
-desc = echo input line
-context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_5; \
-
-
-type = Single
-rem = RULE 6: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
-      Try matching several at a time. Saves time.
-ptype = RegExp
-pattern =^(.*?)\"(GET|POST|HEAD|OPTIONS|PUT|PATCH) (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
-desc = echo input line
-context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_6; \
-
-
-#
-# At this point in the ruleset, everything we *should* allow has already
-# been allowed.
-# No more 3 strikes.  You're out on the first strike.
-#
-
-type = Single
-rem = RULE 100: Block on actual malice.  There is no 3 strikes mode.
-ptype = RegExp
-pattern =^(.*?) \- \- \[(.*?)\] \"(GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
-desc = Actual malice from $1
-context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_100; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1030; \
          write - $1
 
 
+type = Single
+rem = RULE 2000: Dot_something probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/\.aws/config|/\.aws/credentials|/\.config\.yaml|/\.env|/\.env\.bak|/\.env\.example|/\.env\.local|/\.env\.prod|/\.env\.production|/\.env\.save|/\.env\.testing|/\.env~|/\.git/\.env|/\.git/config|/\.github/default\.php|/\.json|/\.ll/\.qiodetme\.php|/\.lu/\.qiodetme\.php|/\.qiodeme\.php|/\.qiodetme\.php|/\.twilio\.env)(.*)
+desc = dot_something malicious probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2000; \
+         write - $1
+
 
 type = Single
-rem = RULE 999: Cleanup rule. \
+rem = RULE 2010: A-P probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/ADMIN/\.env|/ADMINISTRATOR/\.env|/API/\.env|/Admin/\.env|/Administrator/\.env|/Api/\.env|/Archipel/\.env|/BACKUP/\.env|/BU/\.env|/CORE/\.env|/Chai/\.env|/Core/\.env|/Files/Mo0n\.php|/Files/index\.php|/LARAVEL/\.env|/Laravel/\.env|/Library/\.env|/Local/\.env|/PORTAL/\.env|/Passportjs/\.env|/Platform/\.env|/Prod/\.env|/Production/\.env|/Public/\.env).*
+desc = A-P probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2010; \
+         write - $1
+
+
+type = Single
+rem = RULE 2020: a-b probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/aa\.php|/about/function\.php|/actuator/gateway/routes|/ad\.php|/admin\.php|/admin/\.env|/admin/modules/framework/amp_conf/htdocs/admin/config\.php|/agc/ip\.php|/api/\.env|/api/v2/\.env|/app/\.env|/app/config/\.env|/app/vendor/phpunit/phpunit/src/Util/PHP/eval\-stdin\.php|/app_dev\.php/_profiler/open\?file\=app/config/parameters\.yml|/app_dev\.php/_profiler/phpinfo|/application/\.env|/apps/\.env|/audio/\.env|/autodiscover/autodiscover\.json\?\@zdi/Powershell|/autoload_classmap\.php|/backend/\.env|/base/\.env|/baxa1\.phP8|/baxa1\.php|/bk\.php|/blog/\.env|/bn\.php|/boaform/admin/formLogin\?username\=admin\&psd\=admin|/bv\.php|/bypass\.php).*
+desc = a-b probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2020; \
+         write - $1
+
+
+type = Single
+rem = RULE 2030:  c-d probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/cgi-bin/\.env|/cgi-bin/index\.html|/cgi-bin/luci/\;stok\=/locale|/chosen\.php|/chosen\.phppload|/classwithtostring\.php|/click\.php|/client_secrets\.json|/cms/\.env|/conf/\.env|/config\.json|/config/\.env|/cong\.php|/console/\.env|/containers/json|/content\.php|/core/\.env|/cp/\.env|/credentials|/crm/\.env|/data/\.env|/database/\.env|/debug/default|/default\.php|/demo/\.env|/df\.php|/dropdown\.php).*
+desc = c-d probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2030; \
+         write - $1
+
+
+type = Single
+rem = RULE 2040: e-m probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/ecp/Current/exporttool|/eew\.php|/file\.php|/ge\.php|/guacamole|/hehehehe\.php|/hj\.php|/index\.php\?lang=\.\./\.\./\.\./|/index\.php\?lang=\.\./\.\./\.\./|/index\.php\?s\=/index/|/index/function\.php|/info\.php|/ini\.php|/jindex\.php|/laravel/\.env|/library/\.env|/litespeed\.php|/local/\.env|/lock\.php|/login\.php|/lp\.php|/mah\.php|/mjq\.php|/moon\.php).*
+desc = e-m probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2040; \
+         write - $1
+
+
+type = Single
+rem = RULE 2050: n-v probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/new\.php|/new/\.env|/newsite/\.env|/old/\.env|/pages\.php|/pgs\.phP7|/phpunit/phpunit|/pinfo\.php|/pos/\.env|/protected/\.env|/public/\.env|/public/index\.php\?s\=/index|/radio\.php|/randkeyword\.PhP7|/readme\.php|/rex/l/index\.php|/server-status|/shell\.php|/shell\d+\.php|/simple\.php|/sites/all/libraries|/src/\.env|/stg/\.env|/storage/\.env|/sxx\.php|/sym\.php|/telescope/requests|/templates/atomic|/templatesdex\.php|/test\.php|/themes\.php|/upload\.php|/user/default\.php|/vendor/\.env|/vendor/laravel|/vendor/phpunit).*
+desc = n-v probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2050; \
+         write - $1
+
+
+type = Single
+rem = RULE 2060: wordpress probers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/wordpress/update|/wordpress/wp\-admin|/wp\-admin|/wp\-atom\.php|/wp\-configs\.php|/wp\-conflg\.php|/wp\-content|/wp\-editor\.php|/wp\-includes|/wp\-mail\.php).*
+desc = wordpress probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2060; \
+         write - $1
+
+
+type = Single
+rem = RULE 2070: miscellaneous crap
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"GET (/ws\.php|/www/\.env|/x\.php|/x/index\.php|/yt\.php|/\~admin/\.env|/\~dev/\.env|/\d+\.php|/\d+/\d+/\d+/\d+|/\d+\.php|/\?XDEBUG_SESSION_START|/\?phpinfo\=|/\?url\=\.env).*
+desc = A-P probers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2070; \
+         write - $1
+
+
+type = Single
+rem = RULE 2080: HEAD bangers
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"HEAD (/backup|/bc|/bk|/home/|/main|/new|/old|/wordpress|/wp).*
+desc = HEAD bangers
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2080; \
+         write - $1
+
+
+#Note:  I have removed "POST /" since that may, in some cases, be legitimate.
+type = Single
+rem = RULE 2090: POSTer children
+ptype = RegExp
+pattern =^(.*?) \- \- \[(.*?)\] \"POST (/cgi\-bin/\.\%2e/\.\%2e/\.\%2e|/hello\.world\?\%ADd\+allow_url_include).*
+desc = POSTer children
+context = NGINX
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_2090; \
+         write - $1
+
+
+##########################################################################################################
+#
+# At this point in the ruleset, everything we *should* block *should*  already be blocked.
+#
+# Keep track of things we missed.
+
+type = Single
+rem = RULE 9999: Cleanup rule. \
       Anything not handled goes into NOT_MATCHED_NGINX.TXT 
 ptype = RegExp
 pattern =.
-desc = echo input line
+desc = cleanup rule
 context = NGINX
-action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_999
+action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_9999
+
+
 
 
