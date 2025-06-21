@@ -21,7 +21,8 @@ done
 
 # Function to handle cleanup
 cleanup() {
-    echo "start_sec.sh Received signal, exiting..." >&2
+    NOW=`date`
+    echo "start_sec.sh Received signal at ${NOW}, exiting..." >&2
     echo "Killing sec via pid file."
 
     if [ -f ${VIDAR_PIDS}/sec.pid ]
@@ -40,7 +41,7 @@ trap cleanup INT TERM
 # rules files have been fixed up with fixup_rules.sh
 #
 
-# --debug  : sec debug level 4=only necessary output
+# --debug  : sec debug level 4=only necessary output, 6=debug
 # --tail   : keep reading input, even if changed
 # --log    : sec output goes here
 # --pid    : file holds sec process id
