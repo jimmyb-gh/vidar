@@ -16,6 +16,7 @@ VIDAR_HOME=$HOME/src/vidar
 VIDAR_SEC=${VIDAR_HOME}/sec
 VIDAR_SCRIPTS=${VIDAR_HOME}/scripts
 VIDAR_UTILS=${VIDAR_HOME}/utils
+VIDAR_TESTDATA=${VIDAR_HOME}/testdata
 
 # Vidar output files
 #VIDAR_LOGS=/var/log/vidar
@@ -53,12 +54,13 @@ NET6LOG=${VIDAR_INPUT}/net6.txt
 if [ "X${SHOW_ENV}" = "XY" ]
 then
   echo "VIDAR Environment:"
-  echo "VIDAR_HOME=    [${VIDAR_HOME}]"
-  echo "VIDAR_SEC=     [${VIDAR_SEC}]"
-  echo "VIDAR_SCRIPTS= [${VIDAR_SCRIPTS}]"
-  echo "VIDAR_UTILS=   [${VIDAR_UTILS}]"
-  echo "VIDAR_PIDS=    [${VIDAR_PIDS}]"
-  echo "VIDAR_INPUT=   [${VIDAR_INPUT}]"
+  echo "VIDAR_HOME=     [${VIDAR_HOME}]"
+  echo "VIDAR_SEC=      [${VIDAR_SEC}]"
+  echo "VIDAR_SCRIPTS=  [${VIDAR_SCRIPTS}]"
+  echo "VIDAR_UTILS=    [${VIDAR_UTILS}]"
+  echo "VIDAR_PIDS=     [${VIDAR_PIDS}]"
+  echo "VIDAR_INPUT=    [${VIDAR_INPUT}]"
+  echo "VIDAR_TESTDATA= [${VIDAR_TESTDATA}]"
   echo "INPUTS:                                                 OUTPUTS:"
   echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
   echo "EMAILLOG= [${EMAILLOG}]"
@@ -66,5 +68,6 @@ then
   echo "PSLOG   = [${PSLOG}]              VIDAR_DUMP=[${VIDAR_DUMP}]"
   echo "NET4LOG = [${NET4LOG}]"
   echo "NET6LOG = [${NET6LOG}]"
+ 
 fi
 
