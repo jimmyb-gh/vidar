@@ -117,17 +117,12 @@ else
     done
 fi
 
-echo "OLDLOGS=[${OLDLOGS}]"
-
 if [ ! -z "${OLDLOGS}" ]
 then 
     echo "OLDLOGS=[${OLDLOGS}]"
     echo
-    echo "USING rm -i ${OLDLOGS}"
-    echo
-    echo "Remove each one  by 'y' and return, or not by hitting 'n' and return."
-    echo
-    rm -i ${OLDLOGS}
+    echo "USING rm  ${OLDLOGS}"
+    rm  ${OLDLOGS}
 else
     echo "No logs to delete."
 fi
