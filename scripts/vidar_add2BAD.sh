@@ -100,15 +100,18 @@ checktype()
 
 # Function to handle cleanup
 cleanupINT() {
-    echo "vidar_add2BAD.sh terminated on signal INT." >&2
+    NOW=`date`
+    echo "vidar_add2BAD.sh terminated on signal INT at ${NOW}." >&2
     exit 0
 }
 cleanupTERM() {
-    echo "vidar_add2BAD.sh terminated on signal TERM." >&2
+    NOW=`date`
+    echo "vidar_add2BAD.sh terminated on signal TERM at ${NOW}." >&2
     exit 0
 }
 cleanupPIPE() {
-    echo "vidar_add2BAD.sh terminated on signal PIPE." >&2
+    NOW=`date`
+    echo "vidar_add2BAD.sh terminated on signal PIPE at ${NOW}." >&2
     exit 0
 }
 # Set up signal handlers.
