@@ -138,47 +138,24 @@ then
 fi
 
 # Let settle.
-sleep .5
+sleep 1
 
-# IPFW setup commands.  This script (re)loads ipfw.
-# Create a file of ipfw commands.
+cd ${VIDAR_SCRIPTS}
 
-echo "Loading IPFW... "
+chmod +x ipfw_up.sh
 
-echo "kldload ipfw"                                                > /tmp/cmds.$$
-echo "ipfw add 65000 allow ip from any to any"                    >> /tmp/cmds.$$
-echo "ipfw add 65005 allow ipv6 from any to any"                  >> /tmp/cmds.$$
-echo "ipfw add 65010 allow icmp from any to any"                  >> /tmp/cmds.$$
-echo "ipfw add 65015 allow icmp6 from any to any"                 >> /tmp/cmds.$$
-echo "ipfw add 65020 allow tcp from any to any established"       >> /tmp/cmds.$$
-echo "ipfw table BAD create type addr missing"                    >> /tmp/cmds.$$
-echo "ipfw add 60000 deny ip from table\\\\(BAD\\\\) to any"      >> /tmp/cmds.$$
-echo "ipfw table BAD add 9999:9999:9999:9999:9999:9999:9999:9999" >> /tmp/cmds.$$
-echo "ipfw table BAD list"                                        >> /tmp/cmds.$$
-echo "ipfw list"                                                  >> /tmp/cmds.$$
-
-echo  "Loading Vidar... "
-
-
-# Read and execute the above commands one at a time (not in a subshell).
-while IFS= read CMD
-do
-    echo "Running: [${CMD}]"
-    sh -c "${CMD}"
-    RV=$?
-    if [ ${RV} -ne 0 ]
-    then
-        echo
-        echo "Error on running command [${CMD}]. Return code [${RV}]"
-        echo "  Unloading ipfw.  Check and try again."
-        kldunload ipfw
-        rm -f /tmp/cmds.$$
-        echo "  Exiting..."
-        exit 1
-    fi
-done < /tmp/cmds.$$
-
-rm -f /tmp/cmds.$$
+./ipfw_up.sh
+RV=$?
+echo "RV = [${RV}]"
+if [ ${RV} -ne 0 ]
+then
+    echo
+    echo "Error on running command [${CMD}]. Return code [${RV}]"
+    echo "  Unloading ipfw.  Check and try again."
+    kldunload ipfw
+    echo "  Exiting..."
+    exit 1
+fi
 
 #
 # Start Sec.  The LOGS assignment is set by the "fixup_rules.sh"
