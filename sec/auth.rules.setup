@@ -3,150 +3,242 @@
 #  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
 #  WRITE TO FILES FOR EVERYTHING ELSE.
 #
-
-#
 # Rules to manage /var/log/auth.log
-# Sat May 31 17:15:07 UTC 2025
+# Sat Jun 21 19:39:46 EDT 2025
 #
+# 
+# rem = RULE 0: TEST RULE
+# rem=Rule 1000: SSH too many login failures from same host
+# rem=Rule 1010: SSH invalid user notifications
+# rem=Rule 1020: SSH dropped connections
+# rem=Rule 1030: SSH closed connections
+# rem=Rule 1040: Bad key exchange negotiation
+# rem=Rule 1050: Reverse mapping failure
+# rem=Rule 1060: Banner exchange failuire
+# rem=Rule 1070: Address mapping failure 2
+# rem=Rule 1080: Disconnections
+# rem=Rule 1090: Timeout before authentication
+# 
+# rem=Rule 2000: Root login during OFF_HOURS
+# rem=Rule 2010: Bad SU to root
+# rem=Rule 2020: Sudo during off hours
+# 
+# rem=Rule 9999: Cleanup rule
+# 
+###############################################################################
+
 #
-#type = Single
-#rem = RULE 0: TEST RULE
-#ptype = RegExp
-#pattern =([a-fA-F0-9.:]+)
-#desc = echo input line
-#context = AUTH
-#action = write @@@LOGS@@@/TESTRULE.TXT %t: $0 AUTH_0; \
-#         write - $1
+#type=Single
+#rem=Rule 0: TEST RULE
+#ptype=RegExp
+#pattern=([a-fA-F0-9.:]+)
+#desc=echo input line
+#context=AUTH
+#action=write @@@LOGS@@@/TESTRULE.TXT %t: $0 AUTH_0; \
+#       write - $1
 
 
-type = Single
-rem = RULE 1: If the following pattern is matched: \
-      "Connection closed by invalid user ryx 144.217.12.139 port 56686 [preauth]" 
-ptype = RegExp
-pattern =Connection closed by invalid user (\w+) (.*?) port (\d+) \[preauth\]
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1; \
-         write - $2
-
-#
-## NOTE: Rule 2 is similar, but different from Rule 1. It must come after Rule 1.
-#type = Single
-#rem = RULE 2: If the following pattern is matched: \
-#      "Connection closed by 185.247.137.179 port 36491 [preauth]" 
-#ptype = RegExp
-#pattern =Connection closed by (.*?) port
-#desc = echo input line
-#context = AUTH
-#action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_2; \
-         write - $1
+type=SingleWithThreshold
+rem=Rule 1000: SSH too many login failures from same host \
+    Three strikes in 5 minutes and you're out \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
+ptype=RegExp
+pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
+desc=too many failed passwords for user $1 from $2
+context=AUTH
+thresh=3
+window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1000; \
+       write - $2; \
+       reset 0
 
 
-type = Single
-rem = RULE 3: If the following pattern is matched: \
-      "reverse mapping checking getaddrinfo for scanner-203.scanner.com [199.45.154.132] failed." 
-ptype = RegExp
-pattern =reverse mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_3; \
-         write - $2
+type=SingleWithThreshold
+rem=Rule 1005: SSH too invalid user failures from same host \
+    Three strikes in 5 minutes and you're out \
+    "Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
+ptype=RegExp
+pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
+desc=too many failed passwords for user $1 from $2
+context=AUTH
+thresh=3
+window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1005; \
+       write - $2; \
+       reset 0
 
 
-type = Single
-rem = RULE 4: If the following pattern is matched: \
-      "banner exchange: Connection from 206.168.34.35 port 44458: invalid format" 
-ptype = RegExp
-pattern =banner exchange\: Connection from (.*?) port (.*?)\: invalid format
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_4; \
-         write - $1
+type=SingleWithThreshold
+rem=Rule 1010: SSH invalid user notifications \
+    Three strikes in 5 minutes and you're out \
+    "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
+ptype=RegExp
+pattern=Invalid user (\S+) from (.*?) port (\d+)
+desc=too many invalid user $1 on host $2
+context=AUTH
+thresh=3
+window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1010; \
+       write - $2; \
+       reset 0
 
 
-type = Single
-rem = RULE 5: If the following pattern is matched: \
-      "Invalid user linuxserver from 125.67.215.189 port 39617: 
-ptype = RegExp
-pattern =Invalid user (.*?) from (.*?) port (\d*)
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_5; \
-         write - $2
+type=SingleWithThreshold
+rem=Rule 1020: SSH dropped connections \
+    Five strikes in 30 seconds and you're out \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: drop connection #0 from [123.53.58.216]:58234 on [166.84.6.27]:22 penalty: failed authentication"
+ptype=RegExp
+pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
+desc=too many dropped connections $1 from $2
+context=AUTH
+thresh=5
+window=30
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1020; \
+       write - $2; \
+       reset 0
 
 
-type = Single
-rem = RULE 6: If the following pattern is matched: \
-      "Address 179.43.144.242 maps to hostedby.privatelayer.com, but this does not map back to the address." 
-ptype = RegExp
-pattern =Address (.*?) maps to (.*?), but this does not map back to the address\.
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_6; \
-         write - $1
+type=SingleWithThreshold
+rem=Rule 1030: SSH closed connections \
+    Five strikes in 5 minutes and you're out \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]"
+ptype=RegExp
+pattern=Connection closed by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=too many closed connections by invalid or authenticating user $2 from $3
+context=AUTH
+thresh=5
+window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1030; \
+       write - $3; \
+       reset 0
+
+
+type=Single
+rem=Rule 1040: Bad key exchange negotiation \
+    "Apr 28 03:08:49 vc6-27 sshd-session[79718]: Unable to negotiate with 142.44.212.226 port 44534: no matching host key type found. ..." \
+    "Apr 27 15:53:49 vc6-27 sshd-session[34415]: Unable to negotiate with 54.238.242.152 port 63215: no matching key exchange method found. ..."
+ptype=RegExp
+pattern=Unable to negotiate with (.*?) port (\d+)\: no matching
+desc=key exchange or host key type negotiation failed with $1
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1040; \
+       write - $1
+
+
+# Note: the first word was dropped as it is currently in lower case
+# and someone, somewhere will fix it to Sentence case.
+type=Single
+rem=Rule 1050: Reverse mapping failure. \
+    "reverse mapping checking getaddrinfo for scanner-203.scanner.com [199.45.154.132] failed." 
+ptype=RegExp
+pattern=mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
+desc=reverse mapping failed for hostname $1, ip address $2
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1050; \
+       write - $2
+
+
+# See note above.
+type=Single
+rem=Rule 1060: Banner exchange failuire. \
+    "banner exchange: Connection from 206.168.34.35 port 44458: invalid format" 
+ptype=RegExp
+pattern=exchange\: Connection from (.*?) port (.*?)\: invalid format
+desc=banner exchange invalid format from $1
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1060; \
+       write - $1
+
+
+type=Single
+rem=Rule 1070: Address mapping failure 2. \
+    "Address 179.43.144.242 maps to hostedby.privatelayer.com, but this does not map back to the address." 
+ptype=RegExp
+pattern=Address (.*?) maps to (.*?)\, but this does not map back
+desc=mapping for address $1 to host $2 does not match
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1070; \
+       write - $1
+
+
+type=Single
+rem=Rule 1080: Disconnections \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnecting authenticating user root 175.215.143.90 port 49602: Too many authentication failures [preauth]"
+ptype=RegExp
+pattern=Disconnecting authenticating user (\S+) (.*?) port (\d+)\:
+desc=disconnect authenticating user $1 from $2
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1080; \
+       write - $2
+
+
+type=SingleWithThreshold
+rem=Rule 1090: Timeout before authentication \
+    "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
+    3 strikes in 5 minutes, and you're out.
+ptype=RegExp
+pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
+desc=timeout before authentication from $1
+context=AUTH
+Thresh=3
+Window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1090; \
+       write - $1; \
+       reset 0
+
 
 #######################################################################################
-
-# Rules 10 and above are for OFF_HOURS notifications.
+#
+# Rules 2000 and above are for OFF_HOURS notifications.
 # The context keyword takes one internal context and one external context
 # in a logical AND operation. Effectively, it says "If this line is coming
 # from a file with internal context 'AUTH' and if it happens during external
 # context 'OFF_HOURS', process the line."
 #
 
-
-type = Single
-rem = RULE 10: If the following pattern is matched: \
-      "power-down by jpb"  or "power-down by root"
-ptype = RegExp
-pattern =power-down by (\S+)
-desc = echo input line
-context = AUTH && OFF_HOURS
-action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_10] ; \
-         add %C %t [$0] [AUTH_10]
-
-
-type = Single
-rem = RULE 11: If the following pattern is matched: \
-      "ROOT LOGIN (root) ON ttyv4"
-ptype = RegExp
-pattern =ROOT LOGIN \((\S+)\) ON (\S+)
-desc = echo input line
-context = AUTH && OFF_HOURS
-action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_11] ; \
-         add %C %t [$0] [AUTH_11]
+type=Single
+rem=Rule 2000: Root login during OFF_HOURS. \
+    "ROOT LOGIN (root) ON ttyv4"
+ptype=RegExp
+pattern=ROOT LOGIN \((\S+)\) ON (\S+)
+desc=NOTICE: root login off hours on $2
+context=AUTH && OFF_HOURS
+action=write @@@LOGS@@@/sec.out %t [$0] [AUTH_2000] ; \
+       add %C %t [$0] [AUTH_2000]
 
 
-type = Single
-rem = RULE 12: If the following pattern is matched: \
-      "BAD SU jpb to root on /dev/ttyu0"
-ptype = RegExp
-pattern =BAD SU (\S+) to root on (\S+)
-desc = echo input line
-context = AUTH && OFF_HOURS
-action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_12] ; \
-         add %C %t [$0] [AUTH_12]
+type=Single
+rem=Rule 2010: Bad SU to root. \
+    "BAD SU jpb to root on /dev/ttyu0"
+ptype=RegExp
+pattern=BAD SU (\S+) to root on (\S+)
+desc=NOTICE: BAD SU $1 to root on $2
+context=AUTH && OFF_HOURS
+action=write @@@LOGS@@@/sec.out %t [$0] [AUTH_2010] ; \
+       add %C %t [$0] [AUTH_2010]
 
 
-type = Single
-rem = RULE 13: If the following pattern is matched: \
-      "3 LOGIN FAILURES ON ttyu0, root"
-ptype = RegExp
-pattern =(\d+) LOGIN FAIL(.*?) ON (\S+)(.*)
-desc = echo input line
-context = AUTH && OFF_HOURS
-action = write @@@LOGS@@@/sec.out  %t [$0] [AUTH_13] ; \
-         add %C %t [$0] [AUTH_13]
+type=Single
+rem=Rule 2020: Sudo during off hours \
+    "Apr 28 02:06:11 vc6-27 sudo[73788]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/bin/sh" \
+    "Apr 28 02:06:19 vc6-27 sudo[73798]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/usr/local/bin/git remote show" \
+    "Apr 28 02:06:37 vc6-27 sudo[73810]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/usr/local/bin/git push phorge --all"
+ptype=RegExp
+pattern=sudo\[\d+\]\:\w+(\S+)\s\:\s(\S+)\s\;\s(\S+)\s\;\s(\S+)\s\;\s(.*)$
+desc=NOTICE: sudo during OFF_HOURS by $1 on $2, at $3 as $4 command $5
+context=AUTH && OFF_HOURS
+action=write @@@LOGS@@@/sec.out %t [$0] [AUTH_2020] ; \
+       add %C %t [$0] [AUTH_2020]
 
 
 # Cleanup Rule
+type=Single
+rem=Rule 9999: Cleanup rule.  \
+    Anything not handled goes into NOT_MATCHED_AUTH.TXT
+ptype=RegExp
+pattern=.
+desc=cleanup rule $0
+context=AUTH
+action=write @@@LOGS@@@/NOT_MATCHED_AUTH.TXT $0 AUTH_9999
 
-type = Single
-rem = RULE 999: Cleanup rule.  \
-      Anything not handled goes into NOT_MATCHED_AUTH.TXT
-ptype = RegExp
-pattern =.
-desc = echo input line
-context = AUTH
-action = write @@@LOGS@@@/NOT_MATCHED_AUTH.TXT $0 AUTH_999
 
