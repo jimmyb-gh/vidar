@@ -306,6 +306,16 @@ action=write @@@LOGS@@@/sec.out %t [$0] [AUTH_2020] ; \
        add %C %t [$0] [AUTH_2020]
 
 
+# Health Check Rule
+type=Single
+rem=Rule 9998: Health check rule.  Announce our good health if we get this notice in our input file.
+ptype=RegExp
+pattern=AUTH_HEALTH_CHECK
+desc=AUTH_HEALTH_CHECK_RECEIVED
+context=AUTH
+action=write @@@LOGS@@@/sec.out %t [%s] [AUTH_9998]
+
+
 # Cleanup Rule
 type=Single
 rem=Rule 9999: Cleanup rule.  \
