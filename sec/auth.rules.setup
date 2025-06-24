@@ -214,8 +214,8 @@ ptype=RegExp
 pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
 desc=too many disconnected invalid or authenticating users from $3
 context=AUTH
-Thresh=2
-Window=300
+thresh=2
+window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1080; \
        write - $3; \
        reset 0
@@ -240,8 +240,8 @@ ptype=RegExp
 pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
 desc=timeout before authentication from $1
 context=AUTH
-Thresh=2
-Window=300
+thresh=2
+window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1090; \
        write - $1; \
        reset 0
