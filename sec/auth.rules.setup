@@ -4,20 +4,25 @@
 #  WRITE TO FILES FOR EVERYTHING ELSE.
 #
 # Rules to manage /var/log/auth.log
-# Sat Jun 21 19:39:46 EDT 2025
+# Sun Jun 22 15:06:56 EDT 2025
+#
+# In general, keep user variables out of the desc parameter.
+# Otherwise SEC has a huge number of correlations.
 #
 # 
 # rem = RULE 0: TEST RULE
 # rem=Rule 1000: SSH too many login failures from same host
 # rem=Rule 1010: SSH invalid user notifications
 # rem=Rule 1020: SSH dropped connections
-# rem=Rule 1030: SSH closed connections
+# rem=Rule 103x: SSH closed connections Note: This log entry has multiple types. See Notes.
 # rem=Rule 1040: Bad key exchange negotiation
 # rem=Rule 1050: Reverse mapping failure
 # rem=Rule 1060: Banner exchange failuire
 # rem=Rule 1070: Address mapping failure 2
 # rem=Rule 1080: Disconnections
+# rem=Rule 1085: Disconnections 2
 # rem=Rule 1090: Timeout before authentication
+# rem=Rule 1100: SSH User not in AllowGroups
 # 
 # rem=Rule 2000: Root login during OFF_HOURS
 # rem=Rule 2010: Bad SU to root
@@ -38,15 +43,18 @@
 #       write - $1
 
 
+# Take out the user name from the desc
+#desc=too many failed passwords for user $1 from $2
+
 type=SingleWithThreshold
 rem=Rule 1000: SSH too many login failures from same host \
-    Three strikes in 5 minutes and you're out \
+    Two strikes in 5 minutes and you're out \
     "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
 ptype=RegExp
 pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
-desc=too many failed passwords for user $1 from $2
+desc=too many failed passwords from $2
 context=AUTH
-thresh=3
+thresh=2
 window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1000; \
        write - $2; \
@@ -55,13 +63,13 @@ action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1000; \
 
 type=SingleWithThreshold
 rem=Rule 1005: SSH too invalid user failures from same host \
-    Three strikes in 5 minutes and you're out \
-    "Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
+    Two strikes in 5 minutes and you're out \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
 ptype=RegExp
 pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
-desc=too many failed passwords for user $1 from $2
+desc=too many failed passwords from $2
 context=AUTH
-thresh=3
+thresh=2
 window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1005; \
        write - $2; \
@@ -70,46 +78,79 @@ action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1005; \
 
 type=SingleWithThreshold
 rem=Rule 1010: SSH invalid user notifications \
-    Three strikes in 5 minutes and you're out \
+    Two strikes in 5 minutes and you're out \
     "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
 ptype=RegExp
 pattern=Invalid user (\S+) from (.*?) port (\d+)
-desc=too many invalid user $1 on host $2
+desc=too many invalid users from $2
 context=AUTH
-thresh=3
+thresh=2
 window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1010; \
        write - $2; \
        reset 0
-
+ 
 
 type=SingleWithThreshold
 rem=Rule 1020: SSH dropped connections \
-    Five strikes in 30 seconds and you're out \
+    Three strikes in 30 seconds and you're out \
     "Apr 26 16:41:09 vc6-27 sshd[6953]: drop connection #0 from [123.53.58.216]:58234 on [166.84.6.27]:22 penalty: failed authentication"
 ptype=RegExp
 pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
-desc=too many dropped connections $1 from $2
+desc=too many dropped connections from $2
 context=AUTH
-thresh=5
+thresh=3
 window=30
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1020; \
        write - $2; \
        reset 0
 
+ 
+# Note: The other log entry for uucp has no IP address.  This one does.
+type=Single
+rem=Rule 1030: SSH invalid user uucp \
+    Out on first strike. \
+    "Oct  5 03:51:52 jimby sshd[83410]: Connection closed by invalid user uucp 60.211.242.34 port 28743 [preauth]"
+ptype=RegExp
+pattern=Connection closed by invalid user uucp (\S+) port (\d+) \[preauth\]
+desc=invalid user uucp from host $2
+context=AUTH
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1030; \
+       write - $1
+
 
 type=SingleWithThreshold
-rem=Rule 1030: SSH closed connections \
-    Five strikes in 5 minutes and you're out \
-    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]"
+rem=Rule 1033: SSH closed or reset connections \
+    Two strikes in 5 minutes and you're out \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by invalid user liuzhiping 149.102.148.200 port 35550 [preauth]"
 ptype=RegExp
-pattern=Connection closed by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
-desc=too many closed connections by invalid or authenticating user $2 from $3
+pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=too many closed or reset connections by invalid or authenticating users from $4
 context=AUTH
-thresh=5
+thresh=2
 window=300
-action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1030; \
-       write - $3; \
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1033; \
+       write - $4; \
+       reset 0
+
+ 
+# NOTE: Rule 1035 must come after 1033 to prevent 1035 from catching
+# "Connection closed by invalid user foo 165.227.183.117 port 42988 [preauth]" which is the more specific case
+# which should be caught by 1033.
+type=SingleWithThreshold
+rem=Rule 1035: SSH closed or reset connections, no user \
+    Two strikes in 5 minutes and you're out \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by 101.126.21.240 port 51032 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by 123.209.109.231 port 50124 [preauth]"
+ptype=RegExp
+pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
+desc=too many closed or reset connections by host $2 and no user
+context=AUTH
+thresh=2
+window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1035; \
+       write - $2; \
        reset 0
 
 
@@ -161,29 +202,63 @@ action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1070; \
        write - $1
 
 
-type=Single
+# Take the user out of desc.
+#desc=disconnected invalid or authenticating user $2 from $3
+
+type=SingleWithThreshold
 rem=Rule 1080: Disconnections \
+    Two strikes in 5 minutes and you're out \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from authenticating user root 62.122.184.252 port 7431 [preauth]" \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from invalid user RPM 62.122.184.252 port 32706 [preauth]"
+ptype=RegExp
+pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=too many disconnected invalid or authenticating users from $3
+context=AUTH
+Thresh=2
+Window=300
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1080; \
+       write - $3; \
+       reset 0
+
+
+type=Single
+rem=Rule 1085: Disconnections 2 \
     "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnecting authenticating user root 175.215.143.90 port 49602: Too many authentication failures [preauth]"
 ptype=RegExp
-pattern=Disconnecting authenticating user (\S+) (.*?) port (\d+)\:
+pattern=Disconnecting authenticating user (\S+) (.*?) port (\d+)(.*?)\[preauth\]
 desc=disconnect authenticating user $1 from $2
 context=AUTH
-action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1080; \
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1085; \
        write - $2
 
 
 type=SingleWithThreshold
 rem=Rule 1090: Timeout before authentication \
     "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
-    3 strikes in 5 minutes, and you're out.
+    Two strikes in 5 minutes, and you're out.
 ptype=RegExp
 pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
 desc=timeout before authentication from $1
 context=AUTH
-Thresh=3
+Thresh=2
 Window=300
 action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1090; \
        write - $1; \
+       reset 0
+
+
+type=SingleWithThreshold
+rem=Rule 1100: SSH User not in AllowGroups \
+    Two strikes in 30 seconds and you're out \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: User bin from 27.115.115.115 not allowed because none of user's groups are listed in AllowGroups"
+ptype=RegExp
+pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
+desc=too many not in AllowGroups from $2
+context=AUTH
+thresh=2
+window=30
+action=write @@@LOGS@@@/BLOCKED_AUTH.TXT %t: $0 AUTH_1100; \
+       write - $2; \
        reset 0
 
 
