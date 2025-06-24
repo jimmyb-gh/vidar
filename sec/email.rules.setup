@@ -120,6 +120,16 @@ context = EMAIL
 action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_10; \
          write - $3
 
+      
+# Health Check Rule 
+type=Single
+rem=Rule 9998: Health check rule.  Announce our good health if we get this notice in our input file.
+ptype=RegExp
+pattern=EMAIL_HEALTH_CHECK
+desc=EMAIL_HEALTH_CHECK_RECEIVED 
+context=EMAIL
+action=write @@@LOGS@@@/sec.out %t [%s] [EMAIL_9998]
+
 
 type = Single
 rem = RULE 999 : Clean up rule. \
