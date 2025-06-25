@@ -8,116 +8,128 @@
 # Rules to manage /var/log/maillog
 #
 
-type = Single
-rem = RULE 1: If the following pattern is matched: \
+
+#NOTE: Always allow jpb to pass.
+type=Single
+rem=Rule 100: SASL PLAIN authentication failed. \
+      "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=jpb" 
+ptype=RegExp
+pattern=warning: (\S+)\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=jpb
+desc=SASL PLAIN authentication failed from jpb on $2.  ALLOW TO PASS.
+context=EMAIL
+action=write @@@LOGS@@@/ALLOW_EMAIL.TXT %t: %s [EMAIL_100]
+
+
+type=Single
+rem=Rule 1000: SASL login authentication failed. \
       "warning: unknown[49.88.204.36]: SASL LOGIN authentication failed: Invalid authentication mechanism:" 
-ptype = RegExp
-pattern =warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_1; \
+ptype=RegExp
+pattern=warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
+desc=SASL login authentication failed from $1
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1000]; \
          write - $1
 
 
-type = Single
-rem = RULE 2: If the following pattern is matched: \
+type=Single
+rem=Rule 1010: SASL PLAIN authentication failed. \
       "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=angela" 
-ptype = RegExp
-pattern =warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_2; \
+ptype=RegExp
+pattern=warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
+desc=SASL PLAIN authentication failed from $1
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1010]; \
          write - $1
 
 
-type = Single
-rem = RULE 3: If the following pattern is matched: \
+type=Single
+rem=Rule 1020: Hostname does not resolve to address. \
       "warning: hostname 198-23-206-44-host.colocrossing.com does not resolve to address 198.23.206.44: Name does not resolve" 
-ptype = RegExp
-pattern =warning\: hostname (.*?) does not resolve to address (.*?)\: Name does not resolve
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_3; \
+ptype=RegExp
+pattern=warning\: hostname (.*?) does not resolve to address (.*?)\: Name does not resolve
+desc=hostname does not resolve to address $2
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1020]; \
          write - $2
 
 
-type = Single
-rem = RULE 4: If the following pattern is matched: \
+type=Single
+rem=Rule 1030: Improper command pipelining after CONNECT. \
       "improper command pipelining after CONNECT from unknown[2604:a940:302:118:0:40::]" 
-ptype = RegExp
-pattern =improper command pipelining after CONNECT from (.*?)\[(.*?)\]
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_4; \
+ptype=RegExp
+pattern=improper command pipelining after CONNECT from (.*?)\[(.*?)\]
+desc=improper commane pipelining after CONNECT from $2
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1030]; \
          write - $2
 
 
-type = Single
-rem = RULE 5: If the following pattern is matched: \
+type=Single
+rem=Rule 1040: Disconnected IMAP: wrong SSL version number. \
       "imap-login: Disconnected: Connection closed: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number (disconnected before auth was ready, waited 0 secs): user=<>, rip=20.150.201.180, lip=104.225.1.79, TLS handshaking: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number, session=<+LmfqjA2Pq8Ulsm0>" 
-ptype = RegExp
-pattern =imap\-login\: Disconnected\: Connection closed(.*?)\: user=(.*?)\, rip=(.*?)\, lip
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_5; \
+ptype=RegExp
+pattern=imap\-login\: Disconnected\: Connection closed(.*?)\: user=(.*?)\, rip=(.*?)\, lip
+desc=disconnected wrong SSL version number from $3
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1040]; \
          write - $3
 
 
-type = Single
-rem = RULE 6: If the following pattern is matched: \
+type=Single
+rem=Rule 1050: Disconnected: Too many invalid commands with no auth attempt. \
       "imap-login: Disconnected: Too many invalid commands (no auth attempts in 0 secs): user=<>, rip=66.228.53.162," \
       "imap-login: Disconnected: Too many invalid commands (no auth attempts in 0 secs): user=<>, rip=2001:470:1:c84::19, lip=2607:fc50:0:15::fc, session=<AGraJTE2gLcgAQRwAAEMhAAAAAAAAAAZ>" 
-ptype = RegExp
-pattern =imap\-login\: Disconnected\: Too many invalid commands(.*?)\, rip=(.*?)\, lip
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_6; \
+ptype=RegExp
+pattern=imap\-login\: Disconnected\: Too many invalid commands(.*?)\, rip=(.*?)\, lip
+desc=disconnected too many invalid commands from $2
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1050]; \
          write - $2
 
 
-type = Single
-rem = RULE 7: If the following pattern is matched: \
+type=Single
+rem=Rule 1060: Disconnected: Disconnect from unknown. \
       "disconnect from unknown[152.32.159.177] ehlo=1 auth=0/1 unknown=0/1 commands=1/3" 
-ptype = RegExp
-pattern =disconnect from unknown\[(.*?)\] ehlo\=\d+ auth\=\d+\/\d+ unknown\=\d+\/\d+
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_7; \
+ptype=RegExp
+pattern=disconnect from unknown\[(.*?)\] ehlo\=\d+ auth\=\d+\/\d+ unknown\=\d+\/\d+
+desc=disconnected from $1
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1060]; \
          write - $1
 
 
-type = Single
-rem = RULE 8: If the following pattern is matched: \
+type=Single
+rem=Rule 1070: SSL accept error from unknown. \
       "SSL_accept error from unknown[114.106.171.174]: -1" 
-ptype = RegExp
-pattern =SSL_accept error from unknown\[(.*?)\]\:
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_8; \
+ptype=RegExp
+pattern=SSL_accept error from unknown\[(.*?)\]\:
+desc=ssl accept error from $1
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1070]; \
          write - $1
 
 
-type = Single
-rem = RULE 9: If the following pattern is matched: \
+type=Single
+rem=Rule 1080: NOQUEUE: Recipient or Sender address rejected. \
       "NOQUEUE: reject: RCPT from unknown[198.23.206.44]: 550 5.7.23 <jpb@jimby.name>: Recipient address rejected: Message rejected due to: SPF fail - not authorized. Please see http://www.openspf.net/Why?s=helo;id=jasonled.com;ip=198.23.206.44;r=<UNKNOWN>; from=<flora@jasonled.com> to=<jpb@jimby.name> proto=ESMTP helo=<jasonled.com>" \
       "NOQUEUE: reject: RCPT from mail.bkfme.or.kr[121.254.254.82]: 450 4.1.8 <test8@co.kr>: Sender address rejected: Domain not found;" 
-ptype = RegExp
-pattern =NOQUEUE\: reject\: RCPT from (.*?)\[(.*?)\]\: \d+
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_9; \
+ptype=RegExp
+pattern=NOQUEUE\: reject\: RCPT from (.*?)\[(.*?)\]\: \d+
+desc=NOQUEUE receipient or sender address rejected $2
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1080]; \
          write - $2
 
 
-type = Single
-rem = RULE 10: If the following pattern is matched: \
+type=Single
+rem=Rule 1090: NOQUEUE: Lost connection after AUTH or CONNECT. \
       "NOQUEUE: lost connection after AUTH from unknown[49.88.204.36]" \
       "NOQUEUE: lost connection after CONNECT from unknown[152.32.159.177]" 
-ptype = RegExp
-pattern =NOQUEUE\: lost connection after (\w+) from (.*?)\[(.*?)\]
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 EMAIL_10; \
+ptype=RegExp
+pattern=NOQUEUE\: lost connection after (\w+) from (.*?)\[(.*?)\]
+desc=NOQUEUE lost connection after AUTH or CONNECT from $3
+context=EMAIL
+action=write @@@LOGS@@@/BLOCKED_EMAIL.TXT %t: $0 [EMAIL_1090]; \
          write - $3
 
       
@@ -131,12 +143,13 @@ context=EMAIL
 action=write @@@LOGS@@@/sec.out %t [%s] [EMAIL_9998]
 
 
-type = Single
-rem = RULE 999 : Clean up rule. \
+# Clean up rule.
+type=Single
+rem=Rule 9999 : Clean up rule. \
       Anything not handled goes into NOT_MATCHED_EMAIL.TXT
-ptype = RegExp
-pattern =.
-desc = echo input line
-context = EMAIL
-action = write @@@LOGS@@@/NOT_MATCHED_EMAIL.TXT $0 EMAIL_999
+ptype=RegExp
+pattern=.
+desc=clean up rule
+context=EMAIL
+action=write @@@LOGS@@@/NOT_MATCHED_EMAIL.TXT $0 [EMAIL_9999]
 
