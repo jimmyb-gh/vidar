@@ -23,8 +23,10 @@
 # Rule 1015: Root parameter seekers. \
 #      Three strikes and you're out.
 #
-# Rule 1020: Check return status: Too many 4xx errors \
-#      SingleWithThreshold - 4xx X 5 within 120 seconds  
+# Rule 1020: Allow multiple E404 errors.
+#
+# RULE 1025: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
+#    SingleWithThreshold - 4xx X 5 within 120 seconds  
 #
 # Rule 1030: Check return status: Too many redirects \
 #      SingleWithThreshold - 301 x 5 within 300 seconds 
@@ -145,8 +147,17 @@ action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1015; \
        reset 0
 
 
+type=Single
+rem=RULE 1020: Allow multiple E404 errors.
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD) [^"]+" (404) [0-9]+.*
+desc=allow E404 messages to pass.
+context=NGINX
+action=write @@@LOGS@@@/ALLOWED.TXT %t: $0 NGINX_1020
+
+
 type=SingleWithThreshold
-rem=RULE 1020: Check return status: Too many 4xx errors \
+rem=RULE 1025: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
     SingleWithThreshold - 4xx X 5 within 120 seconds  
 ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD|POST|OPTIONS|PUT|PATCH) [^"]+" (4\d+) [0-9]+.*
@@ -154,19 +165,20 @@ desc=too many $4 errors of type $3 from $1
 context=NGINX
 thresh=5
 window=120
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1020; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1025; \
        write - $1; \
        reset 0
 
 
 type=SingleWithThreshold
-rem=RULE 1030: Check return status: Too many redirects \
-    SingleWithThreshold - 301 x 5 within 300 seconds 
+rem=RULE 1030: Check return status: Too many redirects.  These can happen when http://www.jimby.name is used. \
+    Nginx has a redirect in place to point to https://www.jimby.name. \
+    SingleWithThreshold - 301 x 50 within 300 seconds
 ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD|POST|OPTIONS|PUT|PATCH) [^"]+" (3\d+) [0-9]+.*
 desc=too many $4 redirects of type $3 from $1
 context=NGINX
-thresh=5
+thresh=50
 window=300
 action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1030; \
        write - $1; \
