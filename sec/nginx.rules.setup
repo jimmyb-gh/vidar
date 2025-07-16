@@ -48,7 +48,7 @@ desc=too many "GET / " requests from $1
 context=NGINX
 thresh=10
 window=60
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_8; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_8; \
        write - $1; \
        reset 0
 
@@ -95,7 +95,7 @@ ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"\" (400).*
 desc = null HTTP request from $1
 context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1000; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1000; \
          write - $1
 
 
@@ -106,7 +106,7 @@ ptype = RegExp
 pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
 desc = invalid HTTP verbs
 context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1005; \
+action = write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1005; \
          write - $1
 
 
@@ -117,7 +117,7 @@ ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|POST|HEAD) [^"]+" (400) [0-9]+.*
 desc=malformed request $3, immediate block of $1
 context=NGINX
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1010; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1010; \
        write - $1
 
 
@@ -128,7 +128,7 @@ ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?dns=[^"]+"|\?name=[^"]+") (200).*
 desc=malformed request $3, immediate block of $1
 context=NGINX
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1010; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1010; \
        write - $1
 
 
@@ -142,7 +142,7 @@ desc=root parameter probes of $3 immediate block of $1
 context=NGINX
 thresh=3
 window=600
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1015; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1015; \
        write - $1; \
        reset 0
 
@@ -153,7 +153,7 @@ ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD) [^"]+" 404 [0-9]+.*
 desc=allow E404 messages to pass.
 context=NGINX
-action=write @@@LOGS@@@/ALLOW.TXT %t: $0 NGINX_1020
+action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_1020
 
 
 type=SingleWithThreshold
@@ -165,7 +165,7 @@ desc=too many $4 errors of type $3 from $1
 context=NGINX
 thresh=5
 window=120
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1025; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1025; \
        write - $1; \
        reset 0
 
@@ -180,7 +180,7 @@ desc=too many $4 redirects of type $3 from $1
 context=NGINX
 thresh=50
 window=300
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT %t: $0 NGINX_1030; \
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1030; \
        write - $1; \
        reset 0
 
