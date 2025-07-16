@@ -147,13 +147,18 @@ action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1015; \
        reset 0
 
 
-type=Single
-rem=RULE 1020: Allow multiple E404 errors.
+type=SingleWithThreshold
+rem=RULE 1020: Allow multiple E404 errors. \
+    Five strikes in 300 seconds and you're out.
 ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD) [^"]+" 404 [0-9]+.*
-desc=allow E404 messages to pass.
+desc=too many E404 messages to pass.
 context=NGINX
-action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_1020
+thresh=5
+window=180
+action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1020; \
+       write - $1; \
+       reset 0
 
 
 type=SingleWithThreshold
