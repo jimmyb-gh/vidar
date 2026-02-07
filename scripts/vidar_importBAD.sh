@@ -52,9 +52,9 @@ do
     if [ $? -ne 0 ]
     then
         echo
-        echo "Error on ipfw command [${COMMAND}]. Return code [${STATUS}]"
+        echo "Error on ipfw command [${COMMAND} ${i}]. Return code [${STATUS}]"
         echo "  Check ipfw module and BAD.txt, and try again."
-        exit 2
+#        exit 2
     else
         COUNT=$((COUNT + 1))
     fi
