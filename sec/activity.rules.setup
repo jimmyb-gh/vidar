@@ -1,8 +1,4 @@
 #
-#  NOTE FOR ALL RULES:
-#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
-#  WRITE TO FILES FOR EVERYTHING ELSE.
-#
 #
 # Activity Rules.
 # Check for unusual activity.
@@ -13,13 +9,13 @@
 #               CPU       STARTED  RUSER    UID     CMD                                                 ARGS
 #pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
 # 
-type = Single
-ptype = RegExp
-pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
-desc = echo input line
-context = PROC
+type=Single
+ptype=RegExp
+pattern=\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+desc=echo input line
+context=PROC
 continue=TakeNext
-action = write @@@LOGS@@@/sec.out  %t [$1] [$2] [$3] [$4] [$5] [$6] [%C] ; \
+action=write @@@LOGS@@@/sec.out  %t [$1] [$2] [$3] [$4] [$5] [$6] [%C] ; \
          add %C %t [$1] [$2] [$3] [$4] [$5] [$6] [%C]
 
 
@@ -36,13 +32,13 @@ action = write @@@LOGS@@@/sec.out  %t [$1] [$2] [$3] [$4] [$5] [$6] [%C] ; \
 #         Proto                          Local   Foreign
 #pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
 # 
-type = Single
-ptype = RegExp
-pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
-desc = echo input line
-context = NETW
+type=Single
+ptype=RegExp
+pattern=(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
+desc=echo input line
+context=NETW
 continue=TakeNext
-action = write @@@LOGS@@@/sec.out %t [$1] [$2] [$3] [%C] ; \
+action=write @@@LOGS@@@/sec.out %t [$1] [$2] [$3] [%C] ; \
          add %C %t [$1] [$2] [$3] [%C]
 
 
@@ -52,7 +48,7 @@ type=Single
 ptype=RegExp
 pattern=ContextReport
 desc=Generate Report
-context = PROC
+context=PROC
 action=report %C  /bin/cat >> @@@LOGS@@@/report_of_%.year%.mon%.mday\T%.hour%.min
 
 

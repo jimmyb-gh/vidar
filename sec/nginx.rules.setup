@@ -1,9 +1,30 @@
 #
-#  NOTE FOR ALL RULES:
-#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
-#  WRITE TO FILES FOR EVERYTHING ELSE.
 #
-# Fri Jun 20 23:22:33 EDT 2025
+# Wed Feb 18 16:06:01 EST 2026
+#
+# Output is one pipe-delimited line with the following fields:
+#
+#   offense_time : timestamp without time zone     :  2026-01-18 20:21:23
+#   offender_ip  : inet                            :  1.2.3.4 or 2001:db8:1234:5678::1
+#   desc_line    : text (description aka %s)       :  desc=too many E404 messages to pass.
+#   entry        : text (the rule entry name)      :  8A_NGINX_$1
+#   context      : text                            :  NGINX
+#   rule_num     : integer                         :  1234
+#   evidence     : text (the matched line, aka $0) :  First example is for Single Rule
+#
+#146.190.63.248 - - [31/Jan/2026:17:37:17 -0500] "\x16\x03\x01\x05\xDE\x01\x00\x05\xDA\x03\x03\xD7\xD4E7'O\xD3\x17\x96NYr\xAF7\x96B\xB2\x00:\xEA%\xC6\x11\xFEY\x12z6\xFB\xE6\x92r \xF6,c[\xF1\xB5\xD3\xAD\x89\xF4\xAEZ\xF9j\x89\x0F\xF4\xB0\xC1t\x9E\x90!\x9B\xD0lv\xC64=u\x87\x00\x1A\xC0+\xC0/\xC0,\xC00\xCC\xA9\xCC\xA8\xC0\x09\xC0\x13\xC0" 400 150 "-" "-" "-"
+#
+#                                              : Second example is for SingleWithThreshold
+#                                              : Note the collection (concatenation with \n)  of all entries that triggered this rule
+#
+#2026-02-18 16:29:42|193.142.147.209|nginx too many 4xx(except 404) from 193.142.147.209 (rule 1025)|NGINX_193.142.147.209|1025|193.142.147.209 - - [05/Feb/2026:12:18:40 -0500] "POST / HTTP/1.1" 405 161 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "-"\n193.142.147.209 - - [05/Feb/2026:16:49:10 -0500] "POST / HTTP/1.1" 405 161 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "-"\n193.142.147.209 - - [05/Feb/2026:18:31:58 -0500] "POST / HTTP/1.1" 405 161 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "-"\n193.142.147.209 - - [05/Feb/2026:20:01:04 -0500] "POST / HTTP/1.1" 405 161 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "-"\n193.142.147.209 - - [05/Feb/2026:21:06:10 -0500] "POST / HTTP/1.1" 405 161 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "-"
+#
+##########
+# Note that Threshold rules have two parts - a collector (A) and an emitter (B).
+# The collector rule fills the buffer, while the emitter rule, when triggered, emits the entire buffer.
+#
+#
+#######  Framework  #########
 #
 # Rules to manage /var/log/nginx/access.log
 # Rules 1 - 100: Allow Patterns.  Whitelisted.
@@ -39,154 +60,237 @@
 
 
 #NOTE: This rule allows "GET / " up to 10 times in 60 seconds.
-type=SingleWithThreshold
-rem=RULE 8: Too many "GET / " requests.  \
+rem=RULE 8A (Collector): Too many "GET / " requests.  \
     SingleWithThreshold - 200 X 10 within 60 seconds  
+type=Single
+continue=TakeNext
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
-desc=too many "GET / " requests from $1
 context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
+desc=too many "GET / " requests from ip $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 8A_NGINX_$1 %line; \
+       set 8A_NGINX_$1 60
+
+
+rem=RULE 8B (Emitter): Too many "GET / " requests.  \
+    SingleWithThreshold - 200 X 10 within 60 seconds  
+type=SingleWithThreshold
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
+desc=too many "GET / " requests from ip $1
 thresh=10
 window=60
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_8; \
-       write - $1; \
+action=copy 8A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|8A_NGINX_$1|NGINX|8|%out; \
+       empty 8A_NGINX_$1; \
        reset 0
 
 
-type = Single
-rem = RULE 10: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
+rem=RULE 15: Allow Pattern. \
+      We don't care about the IP, just allow this line. \
       Try matching several at a time. Saves time.
-ptype = RegExp
-pattern =^(.*?)\"GET (/bsds|/tmp/hosting_providers|/SEC\-examples|/contact|/css/crab\.css|/img/logo\.png|/tags|/jeroen|/fbsd/ipfw|/\.well\-known)[^"]+
-desc = echo input line
-context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_10; \
+type=Single
+ptype=RegExp
+context=NGINX
+pattern=^(.*?)\"GET (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
+desc=Allow patterns from Rule 15
+action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_15;
 
 
-type = Single
-rem = RULE 15: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
+rem=RULE 20: Allow Pattern. \
+      We don't care about the IP, just allow this line. \
       Try matching several at a time. Saves time.
-ptype = RegExp
-pattern =^(.*?)\"GET (/vids|/fbsd/workflow|/bsdov|/techbits|/blog|/tmpchb|/fbsd_docs|/robots\.txt|/bsds/img/trueos\.png|/favicon\.ico|/favicon\.png|/favicon\.gif|/favicon\.svg|/icons/favicon\.ico|/images/favicon\.ico)[^"]+
-desc = echo input line
-context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_15; \
-
-
-type = Single
-rem = RULE 20: Allow Pattern. \
-      See pseudocode above. We don't care about the IP, just allow this line. \
-      Try matching several at a time. Saves time.
-ptype = RegExp
-pattern =^(.*?)\"GET (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
-desc = echo input line
-context = NGINX
-action = write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
+type=Single
+ptype=RegExp
+context=NGINX
+pattern=^(.*?)\"GET (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
+desc=echo input line
+action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
 
 #####################################  END WHITELIST  ##################################### 
 
 
-type = Single
-rem = RULE 1000: Disallow null HTTP request. \
+rem=RULE 1000: Disallow null HTTP request. \
       One strike and you're out.
-ptype = RegExp
-pattern =^(.*?) \- \- \[(.*?)\] \"\" (400).*
-desc = null HTTP request from $1
-context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1000; \
-         write - $1
-
-
-type = Single
-rem = RULE 1005: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
-      This pattern says: "if it's not on this list, block it.
-ptype = RegExp
-pattern =^(.*?) \- \- \[(.*?)\] \"(?!GET|POST|HEAD|OPTIONS|PUT|PATCH)[^"]+
-desc = invalid HTTP verbs
-context = NGINX
-action = write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1005; \
-         write - $1
-
-
 type=Single
-rem=RULE 1010: Check return status: E400 - bad request \
-    One strike and you're out.
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|POST|HEAD) [^"]+" (400) [0-9]+.*
-desc=malformed request $3, immediate block of $1
 context=NGINX
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1010; \
-       write - $1
+pattern=^(.*?) \- \S+ \[(.*?)\] \"\" (400).*
+desc=null HTTP request from $1
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_NGINX_$1|NGINX|1000|$0; 
 
 
+rem=RULE 1005: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
+      This pattern says: "if it's not on this list, block it.
 type=Single
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(?!GET\s+|POST\s+|HEAD\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+
+desc=invalid HTTP verbs
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1005_NGINX_$1|NGINX|1005|$0; 
+
+
+rem=RULE 1010A: Check return status: E400 - bad request \
+    4 in 120 seconds and you're out.
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|POST\s+|HEAD\s+)[^"]+" (400) [0-9]+.*
+desc=malformed E400 on request $3, threshold reached, blocked $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1010A_NGINX_$1 %line; \
+       set 1010A_NGINX_$1 120
+
+
+rem=RULE 1010B: Check return status: E400 - bad request \
+    4 in 120 seconds and you're out.
+type=SingleWithThreshold
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|POST\s+|HEAD\s+)[^"]+" (400) [0-9]+.*
+desc=malformed E400 on request $3, threshold reached, blocked $1
+thresh=4
+window=120
+action=copy 1010A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010A_NGINX_$1|NGINX|1010|%out; \
+       empty 1010A_NGINX_$1; \
+       reset 0
+
+
 rem=RULE 1013: Check return status: Invalid DNS over HTTP requests.  \
     One strike and you're out.
+type=Single
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?dns=[^"]+"|\?name=[^"]+") (200).*
-desc=malformed request $3, immediate block of $1
 context=NGINX
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1010; \
-       write - $1
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\?(dns|name)=[^ ]+ HTTP/[^"]+"
+desc=DNS over HTTP request $3, immediate block of $1
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1013_NGINX_$1|NGINX|1013|$0; 
 
 
 # Other root parameter seekers.  
-type=SingleWithThreshold
-rem=RULE 1015: Root parameter seekers. \
+rem=RULE 1015A: Root parameter seekers. \
     Three strikes and you're out.
+type=Single
+continue=TakeNext
 ptype=RegExp
+context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?\S+[^"]+"|\?\s+[^"]+") (200).*
 desc=root parameter probes of $3 immediate block of $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1015A_NGINX_$1 %line; \
+       set 1015A_NGINX_$1 600
+
+
+# Other root parameter seekers.  
+rem=RULE 1015B: Root parameter seekers. \
+    Three strikes and you're out.
+type=SingleWithThreshold
+ptype=RegExp
 context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?\S+[^"]+"|\?\s+[^"]+") (200).*
+desc=root parameter probes of $3 immediate block of $1
 thresh=3
 window=600
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1015; \
-       write - $1; \
+action=copy 1015A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1015A_NGINX_$1|NGINX|1015|%out; \
+       empty 1015A_NGINX_$1; \
        reset 0
 
 
-type=SingleWithThreshold
-rem=RULE 1020: Allow multiple E404 errors. \
-    Five strikes in 300 seconds and you're out.
+rem=RULE 1020A: Check multiple E404 errors. \
+    Five strikes and you're out.
+type=Single
+continue=TakeNext
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD) [^"]+" 404 [0-9]+.*
-desc=too many E404 messages to pass.
 context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+)[^"]+" 404 [0-9]+.*
+desc=too many E404 errors from $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1020A_NGINX_$1 %line; \
+       set 1020A_NGINX_$1 180
+
+
+rem=RULE 1020B: Check multiple E404 errors. \
+    Five strikes in 180 seconds and you're out.
+type=SingleWithThreshold
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+)[^"]+" 404 [0-9]+.*
+desc=too many E404 errors from $1
 thresh=5
 window=180
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1020; \
-       write - $1; \
+action=copy 1020A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1020A_NGINX_$1|NGINX|1020|%out; \
+       empty 1020A_NGINX_$1; \
        reset 0
 
 
-type=SingleWithThreshold
-rem=RULE 1025: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
+rem=RULE 1025A: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
     SingleWithThreshold - 4xx X 5 within 120 seconds  
+type=Single
+continue=TakeNext
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD|POST|OPTIONS|PUT|PATCH) [^"]+" (4\d+) [0-9]+.*
-desc=too many $4 errors of type $3 from $1
 context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (4(?!04)\d\d) [0-9]+.*
+desc=too many $4 errors of type $3 from $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1025A_NGINX_$1 %line; \
+       set 1025A_NGINX_$1 120
+
+
+rem=RULE 1025B: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
+    SingleWithThreshold - 4xx X 5 within 120 seconds  
+type=SingleWithThreshold
+ptype=RegExp
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (4(?!04)\d\d) [0-9]+.*
+desc=too many $4 errors of type $3 from $1
 thresh=5
 window=120
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1025; \
-       write - $1; \
+action=copy 1025A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1025A_NGINX_$1|NGINX|1025|%out; \
+       empty 1025A_NGINX_$1; \
        reset 0
 
 
-type=SingleWithThreshold
-rem=RULE 1030: Check return status: Too many redirects.  These can happen when http://www.jimby.name is used. \
+rem=RULE 1030A: Check return status: Too many redirects.\
+    These can happen when http://www.jimby.name is used. \
     Nginx has a redirect in place to point to https://www.jimby.name. \
     SingleWithThreshold - 301 x 50 within 300 seconds
+type=Single
+continue=TakeNext
 ptype=RegExp
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET|HEAD|POST|OPTIONS|PUT|PATCH) [^"]+" (3\d+) [0-9]+.*
+context=NGINX
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (3\d+) [0-9]+.*
+desc=too many $4 redirects of type $3 from $1
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1030A_NGINX_$1 %line; \
+       set 1030A_NGINX_$1 300
+
+
+rem=RULE 1030B: Check return status: Too many redirects.\
+    These can happen when http://www.jimby.name is used. \
+    Nginx has a redirect in place to point to https://www.jimby.name. \
+    SingleWithThreshold - 301 x 50 within 300 seconds
+type=SingleWithThreshold
+ptype=RegExp
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (3\d+) [0-9]+.*
 desc=too many $4 redirects of type $3 from $1
 context=NGINX
 thresh=50
 window=300
-action=write @@@LOGS@@@/BLOCKED_NGINX.TXT $0 NGINX_1030; \
-       write - $1; \
+action=copy 1030A_NGINX_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_NGINX_$1|NGINX|1030|%out; \
+       empty 1030A_NGINX_$1; \
        reset 0
 
 
@@ -208,13 +312,13 @@ action=write @@@LOGS@@@/sec.out %t [%s] [NGINX_9998]
 #
 # Keep track of things we missed.
 
-type = Single
-rem = RULE 9999: Cleanup rule. \
+type=Single
+rem=RULE 9999: Cleanup rule. \
       Anything not handled goes into NOT_MATCHED_NGINX.TXT 
-ptype = RegExp
-pattern =.
-desc = cleanup rule
-context = NGINX
-action = write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_9999
+ptype=RegExp
+pattern=.*
+desc=cleanup rule
+context=NGINX
+action=write @@@LOGS@@@/NOT_MATCHED_NGINX.TXT $0 NGINX_9999
 
 

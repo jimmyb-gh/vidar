@@ -1,9 +1,4 @@
 #
-#  NOTE FOR ALL RULES:
-#  THE ONLY THING SEC SHOULD WRITE TO STDOUT IS AN IP ADDRESS.
-#  WRITE TO FILES FOR EVERYTHING ELSE.
-#
-
 # Contexts set by calendar rules.
 #
 # BUSINESS_HOURS - a context for business hours (7:00am to 11:59pm, M-F)
@@ -39,7 +34,6 @@ action=create BUSINESS_HOURS 0  ; \
        delete OFF_HOURS
 
 
-
 # Set for Off Hours
 type=Calendar
 time=* 0-5,21-23 * * *
@@ -51,8 +45,6 @@ action=create OFF_HOURS 0 ; \
        add %C Started %C at %t. ; \
        report BUSINESS_HOURS /bin/cat >> @@@LOGS@@@/BUSINESS_HOURS.rpt; \
        delete BUSINESS_HOURS
-
-
 
 
 # Set context for Off Hours on Sat, Sun
