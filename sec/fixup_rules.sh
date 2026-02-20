@@ -23,9 +23,14 @@ echo "s]@@@LOGS@@@]${VIDAR_LOGS}]" > f.sed
 echo "s]@@@INPUT@@@]${VIDAR_INPUT}]" >> f.sed
 
 cat activity.rules.setup   | sed  -f f.sed   > activity.rules
+echo "activity.rules done"
 cat auth.rules.setup       | sed  -f f.sed   > auth.rules
+echo "auth.rules done"
 cat email.rules.setup      | sed  -f f.sed   > email.rules
+echo "email.rules done"
 cat nginx.rules.setup      | sed  -f f.sed   > nginx.rules
+echo "nginx.rules done"
 cat calendar.rules.setup   | sed  -f f.sed   > calendar.rules
-
+echo "calendar.rules done"
+#
 echo "Fixup done."
