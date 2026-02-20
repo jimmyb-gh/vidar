@@ -36,14 +36,14 @@ VIDAR_INPUT=${VIDAR_HOME}/input
 # Normally these should be the actual files on the current system
 # but they can be overridden here.
 # These are INPUT logs, not OUTPUT logs.
-#AUTHLOG=/var/log/auth.log
-#EMAILLOG=/var/log/maillog
-#NGINXLOG=/var/log/nginx/access.log
+AUTHLOG=/var/log/auth.log
+EMAILLOG=/var/log/maillog
+NGINXLOG=/var/log/nginx/access.log
 
 # These are INPUT logs, not OUTPUT logs.
-AUTHLOG=${VIDAR_INPUT}/auth.log
-EMAILLOG=${VIDAR_INPUT}/maillog
-NGINXLOG=${VIDAR_INPUT}/access.log
+#AUTHLOG=${VIDAR_INPUT}/auth.log
+#EMAILLOG=${VIDAR_INPUT}/maillog
+#NGINXLOG=${VIDAR_INPUT}/access.log
 PSLOG=${VIDAR_INPUT}/ps.txt
 NET4LOG=${VIDAR_INPUT}/net4.txt
 NET6LOG=${VIDAR_INPUT}/net6.txt
