@@ -1,4 +1,9 @@
-#!/bin/sh
+# DEPRECATED
+# This file is retained for historical reference only.
+# Do not use for new development.
+# Replaced by: postgres/vidar_add2BAD.pl
+# Deprecated as of 2026-02-20
+###!/bin/sh
 #
 
 usage()
@@ -140,10 +145,10 @@ echo "Done."
 
 # Set IPFW commands here. These commands won't be looped like the ones in vidar_start.sh.
 # Keyword "missing" allows to add a table without error even if it already exists.
-COMMAND1="/sbin/ipfw -q table BAD create type addr missing"
-COMMAND2="/sbin/ipfw -q table BAD lookup "  # requires parameter to complete statement
-COMMAND3="/sbin/ipfw -q table BAD add "     # requires parameter to complete statement
-COMMAND4="/sbin/ipfw -q table BAD delete "  # requires parameter to complete statement
+COMMAND1="echo /sbin/ipfw -q table BAD create type addr missing"
+COMMAND2="echo /sbin/ipfw -q table BAD lookup "  # requires parameter to complete statement
+COMMAND3="echo /sbin/ipfw -q table BAD add "     # requires parameter to complete statement
+COMMAND4="echo /sbin/ipfw -q table BAD delete "  # requires parameter to complete statement
 
 
 # COMMAND1 - Create the table.
