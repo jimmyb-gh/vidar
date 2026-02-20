@@ -2,15 +2,15 @@
 
 # randomip.pl - generate a valid random IP address.
 
-# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4  N
-#  ARGV                          0            1           2        3    4
+# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4  N  [L]
+#  ARGV                          0            1           2        3    4   5
 
 $| = 1;  #piping hot
 
 $numargs = scalar @ARGV;
 
-if((scalar @ARGV) != 5) {
-  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4 N\n";
+if((scalar @ARGV) != 6) {
+  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4 N [L]\n";
   exit 1;
 }
 
@@ -45,13 +45,19 @@ if ($randvar =~ /R/i) {
     $rando = 1;
 }
 elsif ($randvar == 6) {
-    $rando = 6
+    $rando = 6;
 }
 elsif ($randvar == 4) {
-    $rando = 4
+    $rando = 4;
 }
 else {
-    $rando = 4
+    $rando = 4;
+}
+
+# Lockdown mode for IPv6. See below.
+$lockdown = $ARGV[5];
+if ($lockdown =~ /L/i) {
+   $lockmedown = 1;
 }
 
 
@@ -88,15 +94,28 @@ while ($repititions-- > 0) {
       }
   }
   else {
-      $max = 0x3000;
-      $a = int(rand($max6));
-      $b = int(rand($max6));
-      $c = int(rand($max6));
-      $d = int(rand($max6));
-      $e = int(rand($max6));
-      $f = int(rand($max6));
-      $g = int(rand($max6));
-      $h = int(rand($max6));
+      if ($lockmedown == 0) {   # be random
+          $max6 = 0x3000;
+          $a = int(rand($max6));
+          $b = int(rand($max6));
+          $c = int(rand($max6));
+          $d = int(rand($max6));
+          $e = int(rand($max6));
+          $f = int(rand($max6));
+          $g = int(rand($max6));
+          $h = int(rand($max6));
+      }
+      else {  # lock down to 2001:db8::_last_hextet_ between 0 and 0xFF
+          $max6 = 0xFF;
+          $a = 0x2001;
+          $b = 0x0db8;
+          $c = 0;
+          $d = 0;
+          $e = 0;
+          $f = 0;
+          $g = 0; 
+          $h = int(rand($max6));
+          } 
       if ($numbered == 1) {
           $outline = sprintf("%-06.6d| %4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X:%4.4X",
           $count, $a, $b, $c, $d, $e, $f, $g, $h)
