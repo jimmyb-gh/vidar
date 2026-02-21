@@ -15,6 +15,7 @@ desc=SASL PLAIN authentication failed from jpb on $2.  ALLOW TO PASS.
 action=write @@@LOGS@@@/ALLOW_EMAIL.TXT %t: %s [EMAIL_100]
 
 
+
 rem=Rule 1000: SASL login authentication failed. \
       "warning: unknown[49.88.204.36]: SASL LOGIN authentication failed: Invalid authentication mechanism:" 
 type=Single
@@ -23,6 +24,16 @@ context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
 desc=SASL login authentication failed from $1
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|$0;
+
+
+rem=Rule 1002: Dovecot passwd-file probing \
+      "Feb 20 19:08:45 jimby dovecot[59472]: auth: passwd-file(nobody,125.19.162.102): unknown user"
+type=Single
+ptype=RegExp
+context=EMAIL
+pattern=(.*?) dovecot\[(.*?)\]\: auth\: passwd-file\((\S+),(.*?)\)\: (.*?)
+desc=Dovecot password file probing from $4
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1002_EMAIL_$4|EMAIL|1002|$0;
 
 
 rem=Rule 1010: SASL PLAIN authentication failed. \

@@ -209,7 +209,7 @@ type=Single
 continue=TakeNext
 ptype=RegExp
 context=NGINX
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+)[^"]+" 404 [0-9]+.*
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+)[^"]+" 404 [0-9]+.*
 desc=too many E404 errors from $1
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1020A_NGINX_$1 %line; \
@@ -221,7 +221,7 @@ rem=RULE 1020B: Check multiple E404 errors. \
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
-pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+)[^"]+" 404 [0-9]+.*
+pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+)[^"]+" 404 [0-9]+.*
 desc=too many E404 errors from $1
 thresh=5
 window=180

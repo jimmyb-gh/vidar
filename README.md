@@ -37,6 +37,31 @@ to import it later - you can keep this database of shame up to date on
 all those miscreants and keep them away.
 
 
+## Implementation Notes
 
+This is a collection of shell and perl scripts.  It is fairly robust.
 
+As written, the code lives in /root/src/vidar.  
+
+You will need 
+
+- postgresql17-client-17.7_2     PostgreSQL database (client)
+- postgresql17-server-17.7_1     PostgreSQL is the most advanced open-source database available anywhere
+- sec-2.9.3                      Simple event (logs) correlator
+- perl5-5.42.0_1                 Practical Extraction and Report Language
+
+Install PostgreSQL create a user with administrator privileges.
+
+Have that user create the database "vidar" using the sql script in 
+postgres/vidar.sql.
+
+Install SEC.  The rules for postfix, nginx, and FreeBSD authentication are
+already installed.
+
+The file *scripts/vidar_start_postgres.sh* starts everything up.  There are some
+pauses in the scripts to let things (i.e. IPFW) settle.  The script uses daemon(8)
+so it is unlikely you will get locked out.
+
+There are some debugging statements in both scripts/readSEC.pl and scripts/add2BAD.pl.
+These can be commented out.
 
