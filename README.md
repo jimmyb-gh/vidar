@@ -1,14 +1,14 @@
 # vidar
-VIDAR - Server Protection
+VIDAR - Server Protection for Internet facing FreeBSD servers.
 
 Vidar is a combination of programs, a PostgreSQL database, and the SEC
-correlator that reads logfiles from authentication, email (postfix),
+correlator engine that reads logfiles from authentication, email (postfix),
 and web server (nginx), and takes action based on SEC rules to add rules
-to an IPFW firewall.  In concept it is similar to blacklistd.
+to an IPFW firewall.  In concept it is similar to fail2ban.
 
 SEC reads the logs in real time and based on its rules, outputs
 metadata that is piped to a process that inserts the events into
-and PostgreSQL data and further pipes the offending IP address
+a PostgreSQL database and further pipes the offending IP address
 to a script that updates a table named "BAD" in IPFW.  This table
 is read by IPFW rules to block offending external systems from
 wrecking havoc on a FreeBSD host.
@@ -16,7 +16,8 @@ wrecking havoc on a FreeBSD host.
 A corresponding table named GOOD contains whitelisted IP addresses
 so you don't accidently lock yourself out.
 
-<RANT>
+\<RANT>
+
 Are you sick and tired of seeing:
 "2a03:b0c0:3:d0::402:d001 - - [31/Jan/2026:17:37:17 -0500] \x16\x03\x01\x05\xDE\x01 ..."
 in your nginx logs and sick of seeing:
@@ -29,9 +30,9 @@ With Vidar, you get to put the hammer down:
 
   "If you abuse my system, I shut you out. Permanently."
 
-</RANT>
+\</RANT>
 
-And with additional trick - a way to dump the IPFW BAD table and a way
+And with an additional trick - a way to dump the IPFW BAD table and a way
 to import it later - you can keep this database of shame up to date on
 all those miscreants and keep them away.
 
