@@ -193,7 +193,7 @@ ${VIDAR_SEC}/fixup_rules.sh
 # vidar_add2BAD.pl reads the incoming IP address and updates the BAD table in IPFW.
 # Note that the GOOD and BAD tables are already set up by ipfw_p.sh.
 
-# For debugging, both vidar_readSEC.pl and vidar_add2BAD.pl write to stderr
+# For debugging, both postgres/vidar_readSEC.pl and postgres/vidar_add2BAD.pl write to stderr
 # which can be redirected to (for example) /tmp/readSEC_stderr.txt and /tmp/add2BAD_stderr.txt
 {
    exec   ${VIDAR_SCRIPTS}/sec_start.sh 2>/dev/null \
