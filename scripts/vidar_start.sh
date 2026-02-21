@@ -90,7 +90,7 @@ done
 #rm /root/src/vidar/logs/*
 
 
-# Remove all logs.  Safely.
+# Remove all logs.
 OLDLOGS=""
 
 echo "Removing old logs ...."
@@ -144,6 +144,7 @@ cd ${VIDAR_SCRIPTS}
 
 chmod +x ipfw_up.sh
 
+# Start IPFW using daemon(8).
 ./ipfw_up.sh
 RV=$?
 echo "RV = [${RV}]"
