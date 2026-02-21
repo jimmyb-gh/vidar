@@ -11,7 +11,7 @@ metadata that is piped to a process that inserts the events into
 a PostgreSQL database and further pipes the offending IP address
 to a script that updates a table named "BAD" in IPFW.  This table
 is read by IPFW rules to block offending external systems from
-wrecking havoc on a FreeBSD host.
+wreacking havoc on a FreeBSD host.
 
 A corresponding table named GOOD contains whitelisted IP addresses
 so you don't accidently lock yourself out.
