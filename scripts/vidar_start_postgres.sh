@@ -48,7 +48,7 @@ do
 done
 
 
-# Remove old PID files.  Safely.
+# Remove old PID files.
 
 echo "Checking old pid files..."
 
@@ -90,7 +90,7 @@ done
 #rm /root/src/vidar/logs/*
 
 
-# Remove all logs.  Safely.
+# Remove all logs.
 OLDLOGS=""
 
 echo "Removing old logs ...."
@@ -149,7 +149,7 @@ chmod +x ipfw_up.sh
 #
 # Must use daemon(8) to start ipfw.  There is a short delay. See the notes in ipfw_up.sh.
 
-/usr/sbin/daemon -f /bin/sh -c 'sleep 10; /root/src/vidar/scripts/ipfw_up.sh'
+/usr/sbin/daemon -f /bin/sh -c 'sleep 5; /root/src/vidar/scripts/ipfw_up.sh'
 
 # Check status
 while :
@@ -161,7 +161,7 @@ do
     sleep 10
     echo
     echo "Waiting for ipfw to load, return code [${RV}]"
-    echo "  sleeping for 10 seconds"
+    echo "  sleeping for 5 seconds"
   else
     break
   fi
@@ -185,19 +185,24 @@ ${VIDAR_SEC}/fixup_rules.sh
 # Sec is the key process in the below pipeline.
 # Sending a TERM signal to the Sec process will stop the whole enchilada.
 
-# Let 'er rip. The outer braces group the processes together and the ampersand ensures they run in the background.
+# Let 'er rip. The outer braces group the processes together and the ampersand
+# ensures they run in the background.
 # sec_start.sh starts SEC to process logfiles and output all data.
-# vidar_readSEC.pl reads the entire output of SEC, updates the vidar postgres database and outputs just the IP address.
+# vidar_readSEC.pl reads the entire output of SEC, updates the vidar postgres
+# database and outputs just the IP address.
 # vidar_add2BAD.pl reads the incoming IP address and updates the BAD table in IPFW.
 # Note that the GOOD and BAD tables are already set up by ipfw_p.sh.
+
+# For debugging, both vidar_readSEC.pl and vidar_add2BAD.pl write to stderr
+# which can be redirected to (for example) /tmp/readSEC_stderr.txt and /tmp/add2BAD_stderr.txt
 {
    exec   ${VIDAR_SCRIPTS}/sec_start.sh 2>/dev/null \
-        | sudo perl /root/src/vidar/postgres/vidar_readSEC.pl  2>/tmp/readSEC_stderr.txt\
-        | sudo perl /root/src/vidar/postgres/vidar_add2BAD.pl  2>/tmp/add2BAD_stderr.txt
+        | sudo perl /root/src/vidar/postgres/vidar_readSEC.pl  2>/dev/null \
+        | sudo perl /root/src/vidar/postgres/vidar_add2BAD.pl  2>/dev/null 
 } &
 
 echo "Waiting for Sec startup."
-sleep 5
+sleep 3
 # Script waits here. Above pipeline continues. Kill with vidar_stop.sh
 # Technical notes:
 # Sec ignores SIGPIPE from add2BAD closing stdout.
@@ -206,6 +211,7 @@ sleep 5
 # so SIGINT can't be used to kill the pipeline.
 # To kill the Vidar pipeline, send SIGTERM, not SIGINT, to Sec pid.
 #
+echo
 echo "Vidar pipeline started."
 echo "Use Sec pid to kill Vidar pipeline."
 echo "Kill with -TERM to Sec pid [`cat ${VIDAR_PIDS}/sec.pid`]"
