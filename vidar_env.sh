@@ -22,9 +22,16 @@ VIDAR_TESTDATA=${VIDAR_HOME}/testdata
 #VIDAR_LOGS=/var/log/vidar
 VIDAR_LOGS=${VIDAR_HOME}/logs
 
+# DEBUGGING
 # SEC dump file location - used for debugging.
 # See scripts/sec_start.sh for filename.
 VIDAR_DUMP=${VIDAR_LOGS}
+VIDAR_DEBUG=${VIDAR_LOGS}
+#
+# Change these to /dev/null if desired.
+VIDAR_SEC_STDERR=${VIDAR_LOGS}/sec_stderr.txt
+VIDAR_READSEC_STDERR=${VIDAR_LOGS}/readSEC_stderr.txt
+VIDAR_ADD2BAD_STDERR=${VIDAR_LOGS}/add2BAD_stderr.txt
 
 # Vidar PIDS directory.  All pids go in this directory.
 VIDAR_PIDS=${VIDAR_HOME}/pids
@@ -61,6 +68,11 @@ then
   echo "VIDAR_PIDS=     [${VIDAR_PIDS}]"
   echo "VIDAR_INPUT=    [${VIDAR_INPUT}]"
   echo "VIDAR_TESTDATA= [${VIDAR_TESTDATA}]"
+  echo "DEBUGGING:"
+  echo "VIDAR_SEC_STDERR=     [${VIDAR_SEC_STDERR}]"
+  echo "VIDAR_READSEC_STDERR= [${VIDAR_READSEC_STDERR}]"
+  echo "VIDAR_ADD2BAD_STDERR= [${VIDAR_ADD2BAD_STDERR}]"
+
   echo "INPUTS:                                                 OUTPUTS:"
   echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
   echo "EMAILLOG= [${EMAILLOG}]"
