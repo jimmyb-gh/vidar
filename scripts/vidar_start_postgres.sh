@@ -196,9 +196,9 @@ ${VIDAR_SEC}/fixup_rules.sh
 # For debugging, both postgres/vidar_readSEC.pl and postgres/vidar_add2BAD.pl write to stderr
 # which can be redirected to (for example) /tmp/readSEC_stderr.txt and /tmp/add2BAD_stderr.txt
 {
-   exec   ${VIDAR_SCRIPTS}/sec_start.sh 2>/dev/null \
-        | sudo perl /root/src/vidar/postgres/vidar_readSEC.pl  2>/dev/null \
-        | sudo perl /root/src/vidar/postgres/vidar_add2BAD.pl  2>/dev/null 
+   exec   ${VIDAR_SCRIPTS}/sec_start.sh 2>${VIDAR_SEC_STDERR} \
+        | sudo perl /root/src/vidar/postgres/vidar_readSEC.pl  2>${VIDAR_READSEC_STDERR} \
+        | sudo perl /root/src/vidar/postgres/vidar_add2BAD.pl  2>${VIDAR_ADD2BAD_STDERR}
 } &
 
 echo "Waiting for Sec startup."
