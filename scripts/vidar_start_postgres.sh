@@ -180,6 +180,7 @@ echo "IPFW loaded.  Starting SEC..."
 cd ${VIDAR_SEC}
 
 # Fix rule sets.
+echo "Fixing rulesets..."
 ${VIDAR_SEC}/fixup_rules.sh
 
 # Sec is the key process in the below pipeline.
