@@ -1,13 +1,12 @@
-# vidar
-VIDAR - Server Protection for Internet facing FreeBSD servers.
+# VIDAR - Server Protection for Internet facing FreeBSD servers.
 
 Vidar is a combination of programs, a PostgreSQL database, and the SEC
 correlator engine that reads logfiles from authentication, email (postfix),
-and web server (nginx), and takes action based on SEC rules to add rules
+and web server (nginx), and takes action based on SEC rules to add entries
 to an IPFW firewall.  In concept it is similar to fail2ban.
 
-SEC reads the logs in real time and based on its rules, outputs
-metadata that is piped to a process that inserts the events into
+SEC reads the logs in real time and based on its rules and correlations,
+outputs metadata that is piped to a process that inserts the events into
 a PostgreSQL database and further pipes the offending IP address
 to a script that updates a table named "BAD" in IPFW.  This table
 is read by IPFW rules to block offending external systems from
@@ -34,14 +33,19 @@ With Vidar, you get to put the hammer down:
 
 And with an additional trick - a way to dump the IPFW BAD table and a way
 to import it later - you can keep this database of shame up to date on
-all those miscreants and keep them away.
+all those miscreants and keep them away.  You can even import the BAD table
+on another FreeBSD system running IPFW.
 
 
 ## Implementation Notes
 
 This is a collection of shell and perl scripts.  It is fairly robust.
+The code has been tested on a Lenovo T530 (16G RAM) with the utilities
+in the /root/src/vidar/utils directory.  The code was able to keep up
+with 3 different input streams (auth.log, nginx/access.log, and maillog)
+at about 900 to 1000 messages per second.
 
-As written, the code lives in /root/src/vidar.  
+As written, all the code lives in /root/src/vidar.  
 
 You will need 
 
@@ -56,12 +60,18 @@ Have that user create the database "vidar" using the sql script in
 postgres/vidar.sql.
 
 Install SEC.  The rules for postfix, nginx, and FreeBSD authentication are
-already installed.
+already installed, but can be added to at your discretion.
 
 The file *scripts/vidar_start_postgres.sh* starts everything up.  There are some
 pauses in the scripts to let things (i.e. IPFW) settle.  The script uses daemon(8)
 so it is unlikely you will get locked out.
 
-There are some debugging statements in both scripts/readSEC.pl and scripts/add2BAD.pl.
-These can be commented out.
+There are some debugging statements that write to STDERR in both scripts/readSEC.pl and scripts/add2BAD.pl.
+These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
+See the the *src/vidar/vidar_env.sh* script for all important definitions.
+
+## Feedback Welcome!
+
+Drop me a line at jpb AT jimby.name.
+
 
