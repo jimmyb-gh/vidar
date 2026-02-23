@@ -1,4 +1,4 @@
-# VIDAR - Server Protection for Internet facing FreeBSD servers.
+# VIDAR - Server Protection for Internet facing FreeBSD Servers.
 
 Vidar is a combination of programs, a PostgreSQL database, and the SEC
 correlator engine that reads logfiles from authentication, email (postfix),
