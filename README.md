@@ -70,6 +70,23 @@ There are some debugging statements that write to STDERR in both scripts/readSEC
 These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
 See the the *src/vidar/vidar_env.sh* script for all important definitions.
 
+In theory, you should be able to, as root:
+- \# pkg install postgresql17-client postgresql17-server sec perl5
+- \# # Set up and initialize postgresql17, ensuring you have admin access 
+- \# mkdir /root/src && cd /root/src
+- \# git clone https://github.com/jimmyb-gh/vidar
+- \# # Edit the file /root/src/vidar/scripts/ipfw_good_table.sh and enter your own IP addresses (v4 and v6).
+- \# # Install the VIDAR database schema in /root/src/vidar/postgres/vidar.sql
+- \# # Edit any variables desired in /root/src/vidar/vidar_env.sh
+- \# # Light 'er up!
+- \# cd /root/src/vidar/scripts/
+- \# ./vidar_start_postgres.sh
+
+This runs the code for sec(1) and the vidar_readSEC.pl and vidar_add2BAD.pl.
+If you have set up the debug output (see the section on debugging in vidar_env.sh)
+you should be able to see the stderr output of the vidar_readSEC.pl and vidar_add2BAD.pl
+scripts in real time.  
+
 ## Feedback Welcome!
 
 Drop me a line at jpb AT jimby.name.
