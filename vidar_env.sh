@@ -39,18 +39,27 @@ VIDAR_PIDS=${VIDAR_HOME}/pids
 # Vidar input logs
 VIDAR_INPUT=${VIDAR_HOME}/input
 
+#
 # Vidar input files.
 # Normally these should be the actual files on the current system
 # but they can be overridden here.
 # These are INPUT logs, not OUTPUT logs.
+# Use for production.
 AUTHLOG=/var/log/auth.log
 EMAILLOG=/var/log/maillog
 NGINXLOG=/var/log/nginx/access.log
 
+# TESTING
 # These are INPUT logs, not OUTPUT logs.
+# Use these file for testing.
+# Comment out the above three lines and
+# uncomment these three lines for testing.
+# Run the utils/push.sh  script to test.
 #AUTHLOG=${VIDAR_INPUT}/auth.log
 #EMAILLOG=${VIDAR_INPUT}/maillog
 #NGINXLOG=${VIDAR_INPUT}/access.log
+
+
 PSLOG=${VIDAR_INPUT}/ps.txt
 NET4LOG=${VIDAR_INPUT}/net4.txt
 NET6LOG=${VIDAR_INPUT}/net6.txt
