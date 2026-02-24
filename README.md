@@ -71,7 +71,7 @@ These can be commented out or the STDERR streams can be redirected to regular fi
 See the the *src/vidar/vidar_env.sh* script for all important definitions.
 
 In theory, you should be able to, as root:
-- \# pkg install postgresql17-client postgresql17-server sec perl5
+- \# pkg install postgresql17-client postgresql17-server sec perl5 p5-DBD-Pg p5-DBI
 - \# # Set up and initialize postgresql17, ensuring you have admin access 
 - \# mkdir /root/src && cd /root/src
 - \# git clone https://github.com/jimmyb-gh/vidar
@@ -86,6 +86,35 @@ This runs the code for sec(1) and the vidar_readSEC.pl and vidar_add2BAD.pl.
 If you have set up the debug output (see the section on debugging in vidar_env.sh)
 you should be able to see the stderr output of the vidar_readSEC.pl and vidar_add2BAD.pl
 scripts in real time.  
+
+To test, edit vidar_env.sh and navigate to the line 
+\# TESTING
+
+and comment the following lines (production use):
+AUTHLOG=/var/log/auth.log
+EMAILLOG=/var/log/maillog
+NGINXLOG=/var/log/nginx/access.log
+
+Then uncomment out these lines 
+AUTHLOG=${VIDAR_INPUT}/auth.log
+EMAILLOG=${VIDAR_INPUT}/maillog
+NGINXLOG=${VIDAR_INPUT}/access.log
+
+Start up Vidar with:
+  scripts/vidar_start_postgres.sh
+
+Then run
+  /bin/sh utils/push.sh .1
+
+This sends 10 lines per second through the Vidar protection system.
+Navigate to the logs directory and watch the files:
+
+  tail -f readSEC_stderr.txt
+  tail -f add2BAD_stderr.txt
+
+
+
+ 
 
 ## Feedback Welcome!
 
