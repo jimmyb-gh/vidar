@@ -41,7 +41,8 @@
 
 
 # Take out the user name from the desc
-#desc=too many failed passwords for user $1 from $2
+#desc=Too many failed SSH passwords from same host
+# Old desc=too many failed passwords from $2
 
 rem=Rule 1000A: SSH too many login failures from same host \
     Two strikes in 5 minutes and you're out \
@@ -51,7 +52,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
-desc=too many failed passwords from $2
+desc=Too many failed SSH passwords from same host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1000A_AUTH_$2 %line; \
        set 1000A_AUTH_$2 300
@@ -64,7 +65,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
-desc=too many failed passwords from $2
+desc=Too many failed SSH passwords from same host
 thresh=2
 window=300
 action=copy 1000A_AUTH_$2 %buf; \
@@ -83,7 +84,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
-desc=too many failed passwords from $2
+desc=Too many invalid user failures from same host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1005A_AUTH_$2 %line; \
        set 1005A_AUTH_$2 300
@@ -96,7 +97,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
-desc=too many failed passwords from $2
+desc=Too many invalid user failures from same host
 thresh=2
 window=300
 action=copy 1005A_AUTH_$2 %buf; \
@@ -106,6 +107,7 @@ action=copy 1005A_AUTH_$2 %buf; \
        reset 0
 
 
+# Consider merging with 1005
 rem=Rule 1010A: SSH invalid user notifications \
     Three strikes in 5 minutes and you're out \
     "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
@@ -114,7 +116,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Invalid user (\S+) from (.*?) port (\d+)
-desc=too many invalid users from $2
+desc=Too many invalid user pw failures from same host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1010A_AUTH_$2 %line; \
        set 1010A_AUTH_$2 300
@@ -127,7 +129,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Invalid user (\S+) from (.*?) port (\d+)
-desc=too many invalid users from $2
+desc=Too many invalid user pw failures from same host
 thresh=2
 window=300
 action=copy 1010A_AUTH_$2 %buf; \
@@ -145,7 +147,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
-desc=too many dropped connections from $2
+desc=Too many dropped SSH failed authentications from same host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1020A_AUTH_$2 %line; \
        set 1020A_AUTH_$2 30
@@ -158,7 +160,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
-desc=too many dropped connections from $2
+desc=Too many dropped SSH failed authentications from same host
 thresh=3
 window=30
 action=copy 1020A_AUTH_$2 %buf; \
@@ -176,7 +178,7 @@ type=Single
 ptype=RegExp
 context=AUTH
 pattern=Connection closed by invalid user uucp (.*?) port (\d+) \[preauth\]
-desc=invalid user uucp from host $1
+desc=Invalid user uucp login attempt from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_AUTH_$1|AUTH|1030|%out; \
        empty 1030A_AUTH_$1; \
        reset 0
@@ -191,7 +193,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
-desc=too many closed or reset connections by invalid or authenticating users from $4
+desc=Too many closed or reset login attempts from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1033A_AUTH_$4 %line; \
        set 1033A_AUTH_$4 300
@@ -205,7 +207,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
-desc=too many closed or reset connections by invalid or authenticating users from $4
+desc=Too many closed or reset login attempts from remote host
 thresh=2
 window=300
 action=copy 1033A_AUTH_$4 %buf; \
@@ -227,7 +229,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
-desc=too many closed or reset connections by host $2 and no user
+desc=Too many closed or reset authentications by remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1035A_AUTH_$2 %line; \
        set 1035A_AUTH_$2 300
@@ -244,7 +246,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
-desc=too many closed or reset connections by host $2 and no user
+desc=Too many closed or reset authentications by remote host
 thresh=2
 window=300
 action=copy 1035A_AUTH_$2 %buf; \
@@ -261,7 +263,7 @@ type=Single
 ptype=RegExp
 context=AUTH
 pattern=Unable to negotiate with (.*?) port (\d+)\: no matching
-desc=key exchange or host key type negotiation failed with $1
+desc=SSH key exchange or host key type negotiation failed with remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1040A_AUTH_$1|AUTH|1040|%out;
 
 
@@ -273,18 +275,18 @@ type=Single
 ptype=RegExp
 context=AUTH
 pattern=mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
-desc=reverse mapping failed for hostname $1, ip address $2
+desc=Reverse mapping failed via getaddrinfo for remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1050A_AUTH_$2|AUTH|1050|%out;
 
 
 # See note above regarding capitalization.
-rem=Rule 1060: Banner exchange failuire. \
+rem=Rule 1060: Banner exchange failure. \
     "banner exchange: Connection from 206.168.34.35 port 44458: invalid format" 
 type=Single
 ptype=RegExp
 context=AUTH
 pattern=exchange\: Connection from (.*?) port (.*?)\: invalid format
-desc=banner exchange invalid format from $1
+desc=Banner exchange failure, invalid format from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1060A_AUTH_$1|AUTH|1060|%out;
 
 
@@ -294,7 +296,7 @@ type=Single
 ptype=RegExp
 context=AUTH
 pattern=Address (.*?) maps to (.*?)\, but this does not map back
-desc=mapping for address $1 to host $2 does not match
+desc=Mapping failure for address to remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070A_AUTH_$1|AUTH|1070|%out;
 
 
@@ -309,7 +311,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
-desc=too many disconnected invalid or authenticating users from $3
+desc=Too many disconnected invalid or authenticating users from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1080A_AUTH_$3 %line; \
        set 1080A_AUTH_$3 300
@@ -325,7 +327,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
-desc=too many disconnected invalid or authenticating users from $3
+desc=Too many disconnected invalid or authenticating users from remote host
 thresh=2
 window=300
 action=copy 1080A_AUTH_$3 %buf; \
@@ -341,7 +343,7 @@ type=Single
 ptype=RegExp
 context=AUTH
 pattern=Disconnecting authenticating user (\S+) (.*?) port (\d+)(.*?)\[preauth\]
-desc=disconnect authenticating user $1 from $2
+desc=Disconnect authenticating user, too many failures from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1085A_AUTH_$2|AUTH|1085|%out;
 
 
@@ -353,7 +355,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
-desc=timeout before authentication from $1
+desc=Timeout before authentication from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1090A_AUTH_$1 %line; \
        set 1090A_AUTH_$1 300
@@ -366,7 +368,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
-desc=timeout before authentication from $1
+desc=Timeout before authentication from remote host
 thresh=2
 window=300
 action=copy 1090A_AUTH_$1 %buf; \
@@ -384,7 +386,7 @@ continue=TakeNext
 ptype=RegExp
 context=AUTH
 pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
-desc=too many users not in AllowGroups from $2
+desc=Too many users from remote host not in local AllowGroups
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1100A_AUTH_$2 %line; \
        set 1100A_AUTH_$2 30
@@ -397,7 +399,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
-desc=too many users not in AllowGroups from $2
+desc=Too many users from remote host not in local AllowGroups
 thresh=2
 window=30
 action=copy 1100A_AUTH_$2 %buf; \

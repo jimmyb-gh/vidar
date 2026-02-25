@@ -3,7 +3,6 @@
 # Rules to manage /var/log/maillog
 #
 
-
 #NOTE: Always allow jpb to pass.
 rem=Rule 100: SASL PLAIN authentication failed. \
       "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=jpb" 
@@ -22,7 +21,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
-desc=SASL login authentication failed from $1
+desc=SASL login authentication failed, invalid authentication mechanism
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|$0;
 
 
@@ -32,7 +31,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=(.*?) dovecot\[(.*?)\]\: auth\: passwd-file\((\S+),(.*?)\)\: (.*?)
-desc=Dovecot password file probing from $4
+desc=Dovecot password file probing from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1002_EMAIL_$4|EMAIL|1002|$0;
 
 
@@ -42,7 +41,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
-desc=SASL PLAIN authentication failed from $1
+desc=SASL PLAIN authentication failed (reason unavailable)
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010_EMAIL_$1|EMAIL|1010|$0;
 
 
@@ -52,7 +51,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning\: hostname (.*?) does not resolve to address (.*?)\: Name does not resolve
-desc=hostname $1 does not resolve to address $2
+desc=Hostname does not resolve to address, name does not resolve
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1020_EMAIL_$2|EMAIL|1020|$0;
 
 
@@ -62,7 +61,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=improper command pipelining after CONNECT from (.*?)\[(.*?)\]
-desc=improper command pipelining after CONNECT from $2
+desc=Improper command pipelining after CONNECT from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1030_EMAIL_$2|EMAIL|1030|$0;
 
 
@@ -72,7 +71,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=imap\-login\: Disconnected\: Connection closed(.*?) user=(.*?)\, rip=(.*?)\, lip
-desc=disconnected wrong SSL version number from $3
+desc=IMAP disconnected, wrong SSL version number from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1040_EMAIL_$3|EMAIL|1040|$0;
 
 
@@ -83,7 +82,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=imap\-login\: Disconnected\: Too many invalid commands(.*?) rip=(.*?)\, lip
-desc=disconnected too many invalid commands from $2
+desc=IMAP disconnected, too many invalid commands with no auth attempt
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1050_EMAIL_$2|EMAIL|1050|$0;
 
 
@@ -93,7 +92,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=disconnect from unknown\[(.*?)\] ehlo\=\d+ auth\=\d+\/\d+ unknown\=\d+\/\d+
-desc=disconnected from $1
+desc=Disconnected from remote host, check reason
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1060_EMAIL_$1|EMAIL|1060|$0;
 
 
@@ -103,7 +102,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=SSL_accept error from unknown\[(.*?)\]\:
-desc=SSL_accept error from $1
+desc=SSL_accept error from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070_EMAIL_$1|EMAIL|1070|$0;
 
 
@@ -114,7 +113,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=NOQUEUE\: reject\: RCPT from (.*?)\[(.*?)\]\: \d+
-desc=NOQUEUE recipient or sender address rejected $1, $2
+desc=NOQUEUE recipient or sender address rejected, possible SPF failure
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1080_EMAIL_$2|EMAIL|1080|$0;
 
 
@@ -125,7 +124,7 @@ type=Single
 ptype=RegExp
 context=EMAIL
 pattern=NOQUEUE\: lost connection after (\S+) from (.*?)\[(.*?)\]
-desc=NOQUEUE lost connection after AUTH or CONNECT from $3
+desc=NOQUEUE lost connection after AUTH or CONNECT from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1090_EMAIL_$3|EMAIL|1090|$0;
 
       

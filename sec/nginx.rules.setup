@@ -67,7 +67,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
-desc=too many "GET / " requests from ip $1
+desc=Too many "GET / " requests from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 8A_NGINX_$1 %line; \
        set 8A_NGINX_$1 60
@@ -79,7 +79,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\s+[^"]+" (200) [0-9]+.*
-desc=too many "GET / " requests from ip $1
+desc=Too many "GET / " requests from remote host
 thresh=10
 window=60
 action=copy 8A_NGINX_$1 %buf; \
@@ -107,7 +107,7 @@ type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?)\"GET (/static/favicon\.ico|/favicon\-16x16\.png|/favicon\-32x32\.png|/apple\-touch\-icon\.png|/android\-chrome\-192x192\.png|/browserconfig\.xml|/apple\-touch\-icon\-precomposed\.png)[^"]+
-desc=echo input line
+desc=Allow patterns from Rule 20
 action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
 
 #####################################  END WHITELIST  ##################################### 
@@ -119,7 +119,7 @@ type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"\" (400).*
-desc=null HTTP request from $1
+desc=Null HTTP request from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_NGINX_$1|NGINX|1000|$0; 
 
 
@@ -129,7 +129,7 @@ type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(?!GET\s+|POST\s+|HEAD\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+
-desc=invalid HTTP verbs
+desc=Invalid HTTP verb received from remote
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1005_NGINX_$1|NGINX|1005|$0; 
 
 
@@ -140,7 +140,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|POST\s+|HEAD\s+)[^"]+" (400) [0-9]+.*
-desc=malformed E400 on request $3, threshold reached, blocked $1
+desc=Malformed request returned E400 threshold reached
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1010A_NGINX_$1 %line; \
        set 1010A_NGINX_$1 120
@@ -152,7 +152,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|POST\s+|HEAD\s+)[^"]+" (400) [0-9]+.*
-desc=malformed E400 on request $3, threshold reached, blocked $1
+desc=Malformed request returned E400 threshold reached
 thresh=4
 window=120
 action=copy 1010A_NGINX_$1 %buf; \
@@ -168,7 +168,7 @@ type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\?(dns|name)=[^ ]+ HTTP/[^"]+"
-desc=DNS over HTTP request $3, immediate block of $1
+desc=DNS over HTTP requested, immediate block of remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1013_NGINX_$1|NGINX|1013|$0; 
 
 
@@ -180,7 +180,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?\S+[^"]+"|\?\s+[^"]+") (200).*
-desc=root parameter probes of $3 immediate block of $1
+desc=Too many root parameter probes from remote host, threshold reached
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1015A_NGINX_$1 %line; \
        set 1015A_NGINX_$1 600
@@ -193,7 +193,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /(\?\S+[^"]+"|\?\s+[^"]+") (200).*
-desc=root parameter probes of $3 immediate block of $1
+desc=Too many root parameter probes from remote host, threshold reached
 thresh=3
 window=600
 action=copy 1015A_NGINX_$1 %buf; \
@@ -210,7 +210,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+)[^"]+" 404 [0-9]+.*
-desc=too many E404 errors from $1
+desc=Too many E404 errors from remote host, threshold reached
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1020A_NGINX_$1 %line; \
        set 1020A_NGINX_$1 180
@@ -222,7 +222,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+)[^"]+" 404 [0-9]+.*
-desc=too many E404 errors from $1
+desc=Too many E404 errors from remote host, threshold reached
 thresh=5
 window=180
 action=copy 1020A_NGINX_$1 %buf; \
@@ -239,7 +239,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (4(?!04)\d\d) [0-9]+.*
-desc=too many $4 errors of type $3 from $1
+desc=Too many $4 errors of type $3 from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1025A_NGINX_$1 %line; \
        set 1025A_NGINX_$1 120
@@ -251,7 +251,7 @@ type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (4(?!04)\d\d) [0-9]+.*
-desc=too many $4 errors of type $3 from $1
+desc=Too many $4 errors of type $3 from remote host
 thresh=5
 window=120
 action=copy 1025A_NGINX_$1 %buf; \
@@ -270,7 +270,7 @@ continue=TakeNext
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (3\d+) [0-9]+.*
-desc=too many $4 redirects of type $3 from $1
+desc=Too many $4 redirects of type $3 from remote host
 action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
        add 1030A_NGINX_$1 %line; \
        set 1030A_NGINX_$1 300
@@ -283,7 +283,7 @@ rem=RULE 1030B: Check return status: Too many redirects.\
 type=SingleWithThreshold
 ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (3\d+) [0-9]+.*
-desc=too many $4 redirects of type $3 from $1
+desc=Too many $4 redirects of type $3 from remote host
 context=NGINX
 thresh=50
 window=300
