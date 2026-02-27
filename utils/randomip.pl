@@ -2,15 +2,15 @@
 
 # randomip.pl - generate a valid random IP address.
 
-# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4  N  [L]
-#  ARGV                          0            1           2        3    4   5
+# usage: perl randomip.pl  highest_byte number_of_reps throttle  R|6|4  N|x  [L]
+#  ARGV                          0            1           2        3    4     5
 
 $| = 1;  #piping hot
 
 $numargs = scalar @ARGV;
 
 if((scalar @ARGV) != 6) {
-  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4 N [L]\n";
+  print "usage: perl randomip.pl highest_byte number_of_reps throttle_seconds R|6|4 N|x [L]\n";
   exit 1;
 }
 
