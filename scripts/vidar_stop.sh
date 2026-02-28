@@ -28,22 +28,6 @@ SHOW_ENV="Y"
 . ../vidar_env.sh
 
 
-#echo -n "Stopping and unloading ipfw... "
-#
-#STATUS=`/sbin/kldunload ipfw`
-#
-#if [ $? -ne 0 ]
-#then
-#  echo
-#  echo "Error on unloading ipfw. Return code [${STATUS}]"
-#  echo "  Check ipfw module, and try again."
-#  exit 2
-#else
-#  echo "done. ipfw kernel module unloaded."
-#  # show proof here.
-#  echo
-#fi
-#
 
 echo "Killing Vidar pipeline by killing Sec."
 
@@ -54,11 +38,32 @@ echo
 # Kill vidar_add2BAD.sh too, just in case it's throwing errors.
 #kill -TERM `cat ${VIDAR_PIDS}/add2BAD.pid`
 
+echo "Last 3 lines of ${VIDAR_LOGS}/sec.out"
+
 if [ -f ${VIDAR_LOGS}/sec.out ]
 then
     tail -3 ${VIDAR_LOGS}/sec.out
 fi
 
+echo -n "Stopping and unloading ipfw... "
+
+STATUS=`/sbin/kldunload ipfw`
+
+if [ $? -ne 0 ]
+then
+  echo
+  echo "Error on unloading ipfw. Return code [${STATUS}]"
+  echo "  Check ipfw module, and unload manually with 'kldunload ipfw'"
+  exit 2
+else
+  echo "Done. ipfw kernel module unloaded."
+  # show proof here.
+  echo
+fi
+
+echo "VIDAR is stopped."
+
+echo
 
 exit 0
 

@@ -218,6 +218,8 @@ echo "Sleeping 3 seconds to let Sec settle..."
 sleep 3
 echo "Use Sec pid to kill Vidar pipeline."
 echo "Kill with -TERM to Sec pid [`cat ${VIDAR_PIDS}/sec.pid`]"
+echo "or run ${VIDAR_SCRIPTS}/vidar_stop.sh"
+echo
 
 exit 0
 
