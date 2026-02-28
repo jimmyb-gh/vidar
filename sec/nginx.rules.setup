@@ -61,7 +61,8 @@
 
 #NOTE: This rule allows "GET / " up to 10 times in 60 seconds.
 rem=RULE 8A (Collector): Too many "GET / " requests.  \
-    SingleWithThreshold - 200 X 10 within 60 seconds  
+    SingleWithThreshold - 200 X 10 within 60 seconds  \
+    Blocked for 10 minutes.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -74,7 +75,8 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=RULE 8B (Emitter): Too many "GET / " requests.  \
-    SingleWithThreshold - 200 X 10 within 60 seconds  
+    SingleWithThreshold - 200 X 10 within 60 seconds  \
+    Blocked for 10 minutes.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -84,7 +86,7 @@ thresh=10
 window=60
 action=copy 8A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|8A_NGINX_$1|NGINX|8|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|8A_NGINX_$1|NGINX|8|600|%out; \
        empty 8A_NGINX_$1; \
        reset 0
 
@@ -114,27 +116,27 @@ action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_20; \
 
 
 rem=RULE 1000: Disallow null HTTP request. \
-      One strike and you're out.
+      One strike and you're out for 24 hours.
 type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"\" (400).*
 desc=Null HTTP request from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_NGINX_$1|NGINX|1000|$0; 
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_NGINX_$1|NGINX|1000|86400|$0; 
 
 
 rem=RULE 1005: Allow only valid HTTP/1.1 and HTTP/2 methods (according to ChatGPT) \
-      This pattern says: "if it's not on this list, block it.
+      This pattern says: "if it's not on this list, block it for one week (604800 seconds).
 type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(?!GET\s+|POST\s+|HEAD\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+
 desc=Invalid HTTP verb received from remote
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1005_NGINX_$1|NGINX|1005|$0; 
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1005_NGINX_$1|NGINX|1005|604800|$0; 
 
 
 rem=RULE 1010A: Check return status: E400 - bad request \
-    4 in 120 seconds and you're out.
+    4 in 120 seconds and you're out for 4 hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -147,7 +149,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=RULE 1010B: Check return status: E400 - bad request \
-    4 in 120 seconds and you're out.
+    4 in 120 seconds and you're out for 4 hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -157,24 +159,24 @@ thresh=4
 window=120
 action=copy 1010A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010A_NGINX_$1|NGINX|1010|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010A_NGINX_$1|NGINX|1010|14400|%out; \
        empty 1010A_NGINX_$1; \
        reset 0
 
 
 rem=RULE 1013: Check return status: Invalid DNS over HTTP requests.  \
-    One strike and you're out.
+    One strike and you're out for a week.
 type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"GET /\?(dns|name)=[^ ]+ HTTP/[^"]+"
 desc=DNS over HTTP requested, immediate block of remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1013_NGINX_$1|NGINX|1013|$0; 
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1013_NGINX_$1|NGINX|1013|604800|$0; 
 
 
 # Other root parameter seekers.  
 rem=RULE 1015A: Root parameter seekers. \
-    Three strikes and you're out.
+    Three strikes and you're out for 24 hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -188,7 +190,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 # Other root parameter seekers.  
 rem=RULE 1015B: Root parameter seekers. \
-    Three strikes and you're out.
+    Three strikes and you're out for 24 hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -198,13 +200,13 @@ thresh=3
 window=600
 action=copy 1015A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1015A_NGINX_$1|NGINX|1015|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1015A_NGINX_$1|NGINX|1015|86400|%out; \
        empty 1015A_NGINX_$1; \
        reset 0
 
 
 rem=RULE 1020A: Check multiple E404 errors. \
-    Five strikes and you're out.
+    Five strikes and you're out for two hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -217,7 +219,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=RULE 1020B: Check multiple E404 errors. \
-    Five strikes in 180 seconds and you're out.
+    Five strikes in 180 seconds and you're out for two hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -227,13 +229,13 @@ thresh=5
 window=180
 action=copy 1020A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1020A_NGINX_$1|NGINX|1020|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1020A_NGINX_$1|NGINX|1020|7200|%out; \
        empty 1020A_NGINX_$1; \
        reset 0
 
 
 rem=RULE 1025A: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
-    SingleWithThreshold - 4xx X 5 within 120 seconds  
+    SingleWithThreshold - 4xx X 5 within 120 seconds, block for 4 hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -246,7 +248,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=RULE 1025B: Check return status: Too many 4xx errors, but not E404 handled by Rule 1020. \
-    SingleWithThreshold - 4xx X 5 within 120 seconds  
+    SingleWithThreshold - 4xx X 5 within 120 seconds, block for 4 hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -256,7 +258,7 @@ thresh=5
 window=120
 action=copy 1025A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1025A_NGINX_$1|NGINX|1025|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1025A_NGINX_$1|NGINX|1025|14400|%out; \
        empty 1025A_NGINX_$1; \
        reset 0
 
@@ -264,7 +266,7 @@ action=copy 1025A_NGINX_$1 %buf; \
 rem=RULE 1030A: Check return status: Too many redirects.\
     These can happen when http://www.jimby.name is used. \
     Nginx has a redirect in place to point to https://www.jimby.name. \
-    SingleWithThreshold - 301 x 50 within 300 seconds
+    SingleWithThreshold - 301 x 50 within 300 seconds, blocked for 5 minutes.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -279,7 +281,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 rem=RULE 1030B: Check return status: Too many redirects.\
     These can happen when http://www.jimby.name is used. \
     Nginx has a redirect in place to point to https://www.jimby.name. \
-    SingleWithThreshold - 301 x 50 within 300 seconds
+    SingleWithThreshold - 301 x 50 within 300 seconds, blocked for 5 minutes.
 type=SingleWithThreshold
 ptype=RegExp
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(GET\s+|HEAD\s+|POST\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+" (3\d+) [0-9]+.*
@@ -289,7 +291,7 @@ thresh=50
 window=300
 action=copy 1030A_NGINX_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
-       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_NGINX_$1|NGINX|1030|%out; \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_NGINX_$1|NGINX|1030|300|%out; \
        empty 1030A_NGINX_$1; \
        reset 0
 

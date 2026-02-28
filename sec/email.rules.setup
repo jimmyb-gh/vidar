@@ -16,116 +16,127 @@ action=write @@@LOGS@@@/ALLOW_EMAIL.TXT %t: %s [EMAIL_100]
 
 
 rem=Rule 1000: SASL login authentication failed. \
-      "warning: unknown[49.88.204.36]: SASL LOGIN authentication failed: Invalid authentication mechanism:" 
+      "warning: unknown[49.88.204.36]: SASL LOGIN authentication failed: Invalid authentication mechanism:" \
+      Blocked for one hour.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
 desc=SASL login authentication failed, invalid authentication mechanism
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|3600|$0;
 
 
 rem=Rule 1002: Dovecot passwd-file probing \
-      "Feb 20 19:08:45 jimby dovecot[59472]: auth: passwd-file(nobody,125.19.162.102): unknown user"
+      "Feb 20 19:08:45 jimby dovecot[59472]: auth: passwd-file(nobody,125.19.162.102): unknown user" \
+      Permanent block.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=(.*?) dovecot\[(.*?)\]\: auth\: passwd-file\((\S+),(.*?)\)\: (.*?)
 desc=Dovecot password file probing from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1002_EMAIL_$4|EMAIL|1002|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1002_EMAIL_$4|EMAIL|1002|0|$0;
 
 
 rem=Rule 1010: SASL PLAIN authentication failed. \
-      "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=angela" 
+      "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=angela" \
+      Blocked for 4 hours.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
 desc=SASL PLAIN authentication failed (reason unavailable)
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010_EMAIL_$1|EMAIL|1010|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010_EMAIL_$1|EMAIL|1010|14400|$0;
 
 
 rem=Rule 1020: Hostname does not resolve to address. \
-      "warning: hostname 198-23-206-44-host.colocrossing.com does not resolve to address 198.23.206.44: Name does not resolve" 
+      "warning: hostname 198-23-206-44-host.colocrossing.com does not resolve to address 198.23.206.44: Name does not resolve" \
+      Blocked for 4 hours.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=warning\: hostname (.*?) does not resolve to address (.*?)\: Name does not resolve
 desc=Hostname does not resolve to address, name does not resolve
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1020_EMAIL_$2|EMAIL|1020|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1020_EMAIL_$2|EMAIL|1020|14400|$0;
 
 
 rem=Rule 1030: Improper command pipelining after CONNECT. \
-      "improper command pipelining after CONNECT from unknown[2604:a940:302:118:0:40::]" 
+      "improper command pipelining after CONNECT from unknown[2604:a940:302:118:0:40::]" \
+      Blocked for 4 hours.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=improper command pipelining after CONNECT from (.*?)\[(.*?)\]
 desc=Improper command pipelining after CONNECT from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1030_EMAIL_$2|EMAIL|1030|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1030_EMAIL_$2|EMAIL|1030|14400|$0;
 
 
 rem=Rule 1040: Disconnected IMAP: wrong SSL version number. \
-      "imap-login: Disconnected: Connection closed: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number (disconnected before auth was ready, waited 0 secs): user=<>, rip=20.150.201.180, lip=104.225.1.79, TLS handshaking: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number, session=<+LmfqjA2Pq8Ulsm0>" 
+      "imap-login: Disconnected: Connection closed: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number (disconnected before auth was ready, waited 0 secs): user=<>, rip=20.150.201.180, lip=104.225.1.79, TLS handshaking: SSL_accept() failed: error:0A00010B:SSL routines::wrong version number, session=<+LmfqjA2Pq8Ulsm0>"  \
+      Blocked for 4 hours.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=imap\-login\: Disconnected\: Connection closed(.*?) user=(.*?)\, rip=(.*?)\, lip
 desc=IMAP disconnected, wrong SSL version number from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1040_EMAIL_$3|EMAIL|1040|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1040_EMAIL_$3|EMAIL|1040|14400|$0;
 
 
 rem=Rule 1050: Disconnected: Too many invalid commands with no auth attempt. \
       "imap-login: Disconnected: Too many invalid commands (no auth attempts in 0 secs): user=<>, rip=66.228.53.162," \
-      "imap-login: Disconnected: Too many invalid commands (no auth attempts in 0 secs): user=<>, rip=2001:470:1:c84::19, lip=2607:fc50:0:15::fc, session=<AGraJTE2gLcgAQRwAAEMhAAAAAAAAAAZ>" 
+      "imap-login: Disconnected: Too many invalid commands (no auth attempts in 0 secs): user=<>, rip=2001:470:1:c84::19, lip=2607:fc50:0:15::fc, session=<AGraJTE2gLcgAQRwAAEMhAAAAAAAAAAZ>" \
+      Blocked for 4 hours.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=imap\-login\: Disconnected\: Too many invalid commands(.*?) rip=(.*?)\, lip
 desc=IMAP disconnected, too many invalid commands with no auth attempt
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1050_EMAIL_$2|EMAIL|1050|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1050_EMAIL_$2|EMAIL|1050|14400|$0;
 
 
 rem=Rule 1060: Disconnected: Disconnect from unknown. \
-      "disconnect from unknown[152.32.159.177] ehlo=1 auth=0/1 unknown=0/1 commands=1/3" 
+      "disconnect from unknown[152.32.159.177] ehlo=1 auth=0/1 unknown=0/1 commands=1/3" \
+      Blocked for 10 minutes.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=disconnect from unknown\[(.*?)\] ehlo\=\d+ auth\=\d+\/\d+ unknown\=\d+\/\d+
 desc=Disconnected from remote host, check reason
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1060_EMAIL_$1|EMAIL|1060|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1060_EMAIL_$1|EMAIL|1060|600|$0;
 
 
 rem=Rule 1070: SSL accept error from unknown. \
-      "SSL_accept error from unknown[114.106.171.174]: -1" 
+      "SSL_accept error from unknown[114.106.171.174]: -1" \
+      Blocked for 10 minutes.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=SSL_accept error from unknown\[(.*?)\]\:
 desc=SSL_accept error from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070_EMAIL_$1|EMAIL|1070|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070_EMAIL_$1|EMAIL|1070|600|$0;
 
 
 rem=Rule 1080: NOQUEUE: Recipient or Sender address rejected. \
       "NOQUEUE: reject: RCPT from unknown[198.23.206.44]: 550 5.7.23 <jpb@jimby.name>: Recipient address rejected: Message rejected due to: SPF fail - not authorized. Please see http://www.openspf.net/Why?s=helo;id=jasonled.com;ip=198.23.206.44;r=<UNKNOWN>; from=<flora@jasonled.com> to=<jpb@jimby.name> proto=ESMTP helo=<jasonled.com>" \
-      "NOQUEUE: reject: RCPT from mail.bkfme.or.kr[121.254.254.82]: 450 4.1.8 <test8@co.kr>: Sender address rejected: Domain not found;" 
+      "NOQUEUE: reject: RCPT from mail.bkfme.or.kr[121.254.254.82]: 450 4.1.8 <test8@co.kr>: Sender address rejected: Domain not found;"  \
+      Blocked for 1 hour.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=NOQUEUE\: reject\: RCPT from (.*?)\[(.*?)\]\: \d+
 desc=NOQUEUE recipient or sender address rejected, possible SPF failure
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1080_EMAIL_$2|EMAIL|1080|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1080_EMAIL_$2|EMAIL|1080|3600|$0;
 
 
 rem=Rule 1090: NOQUEUE: Lost connection after AUTH or CONNECT. \
       "NOQUEUE: lost connection after AUTH from unknown[49.88.204.36]" \
-      "NOQUEUE: lost connection after CONNECT from unknown[152.32.159.177]" 
+      "NOQUEUE: lost connection after CONNECT from unknown[152.32.159.177]" \
+      Blocked for 10 minutes.
 type=Single
 ptype=RegExp
 context=EMAIL
 pattern=NOQUEUE\: lost connection after (\S+) from (.*?)\[(.*?)\]
 desc=NOQUEUE lost connection after AUTH or CONNECT from remote host
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1090_EMAIL_$3|EMAIL|1090|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1090_EMAIL_$3|EMAIL|1090|600|$0;
 
       
 # Health Check Rule 
