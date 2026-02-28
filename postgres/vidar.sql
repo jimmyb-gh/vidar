@@ -29,7 +29,6 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ipfw_queue (
     id integer NOT NULL,
     ip_addr inet NOT NULL,
-    blocktime integer NOT NULL,
     added_at timestamp without time zone DEFAULT now() NOT NULL,
     remove_after timestamp without time zone DEFAULT (now() + '24:00:00'::interval) NOT NULL
 );
@@ -71,6 +70,7 @@ CREATE TABLE public.offenders (
     entry text NOT NULL,
     context text NOT NULL,
     rule_num integer NOT NULL,
+    repeats integer NOT NULL DEFAULT 1,
     evidence text NOT NULL,
     CONSTRAINT offenders_context_check CHECK ((length(context) <= 20))
 );
@@ -156,6 +156,13 @@ CREATE INDEX idx_offenders_ip ON public.offenders USING btree (offender_ip);
 --
 
 CREATE INDEX idx_offenders_rule ON public.offenders USING btree (rule_num);
+
+
+--
+-- Name: idx_offenders_repeats; Type: INDEX; Schema: public; Owner: jpb
+--
+
+CREATE INDEX idx_offenders_repeats ON public.offenders USING btree (repeats);
 
 
 --
