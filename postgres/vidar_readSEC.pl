@@ -30,8 +30,8 @@ my $sth = $dbh->prepare(
 # The blocking time comes through as an integer number of seconds to block (e.g. 3600 seconds).
 # The below syntax creates the correct removal time from that value.
 my $ipfwq = $dbh->prepare(
-    "INSERT INTO ipfw_queue (ip_addr, added_at, remove_after)
-     VALUES (?::inet, now(), now() + (? * interval '1 second'))"
+    "INSERT INTO ipfw_queue (ip_addr, blocktime, added_at, remove_after)
+     VALUES (?::inet, ?, now(), now() + (? * interval '1 second'))"
 );
 
 
@@ -83,11 +83,12 @@ while (<STDIN>) {
     if ($blocktime != 0) {
       print STDERR "Blocking [$ip] for [$blocktime] on rule [$context, $rule]\n";
       eval {
-          $ipfwq->execute($ip, $blocktime);
+          $ipfwq->execute($ip, $blocktime, $blocktime);
       };
       if ($@) {
           warn "Insert into ipfw_queue failed: $@";
           next;
+      }
     }
     else {
       print STDERR "Blocking [$ip] permanently on rule [$context, $rule]\n";
