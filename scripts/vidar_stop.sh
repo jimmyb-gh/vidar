@@ -50,13 +50,13 @@ echo "Killing Vidar pipeline by killing Sec."
 echo "kill -TERM \`cat ${VIDAR_PIDS}/sec.pid\`"
 kill -TERM `cat ${VIDAR_PIDS}/sec.pid`
 echo
-echo "Killing vidar_add2BAD.sh too, just for good measure."
+#echo "Killing vidar_add2BAD.sh too, just for good measure."
 # Kill vidar_add2BAD.sh too, just in case it's throwing errors.
-kill -TERM `cat ${VIDAR_PIDS}/add2BAD.pid`
+#kill -TERM `cat ${VIDAR_PIDS}/add2BAD.pid`
 
-if [ -f ${VIDAR_LOGS}/sec.output ]
+if [ -f ${VIDAR_LOGS}/sec.out ]
 then
-    tail -3 ${VIDAR_LOGS}/sec.output
+    tail -3 ${VIDAR_LOGS}/sec.out
 fi
 
 
