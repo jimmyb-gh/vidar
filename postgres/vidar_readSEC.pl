@@ -12,6 +12,7 @@ print  STDERR "Setting up DB connection\n" ;
 # set for unbuffered output
 $| = 1;
 
+# Prepare connection to database.
 my $dbh = DBI->connect(
     "dbi:Pg:dbname=vidar",
     "jpb",  # adjust username
@@ -33,6 +34,18 @@ my $ipfwq = $dbh->prepare(
     "INSERT INTO ipfw_queue (ip_addr, blocktime, added_at, remove_after)
      VALUES (?::inet, ?, now(), now() + (? * interval '1 second'))"
 );
+
+
+# Prepared statement for repeaters table.
+# This is an "UPSERT" - i.e. insert new or update existing record.
+my $rep = $dbh->prepare(q{
+  INSERT INTO repeaters (offender_ip, repeat_count, first_seen, last_seen)
+  VALUES (?, 1, ?, ?)
+  ON CONFLICT (offender_ip)
+  DO UPDATE SET repeat_count = repeaters.repeat_count + 1,
+  last_seen                  = now()
+});
+
 
 
 print  STDERR "Ready for input\n" ;
@@ -68,7 +81,7 @@ while (<STDIN>) {
     # logs can be anything - no shell execution risk in INSERT
     
 # DEBUGGING ONLY
-    print STDERR "Inserting record for rule [$rule]\n";
+    print STDERR "Inserting record into offenders table for rule [$rule]\n";
 
     eval {
         $sth->execute($time, $ip, $desc, $entry, $context, $rule, $evidence);
@@ -80,8 +93,9 @@ while (<STDIN>) {
 
     # Only execute this entry if the block is NOT zero.
     # Zero (0) is a permanent block, so don't enter here, just pass the IP through.
+    # By not adding the record here, it will land into ipfw and never be removed.
     if ($blocktime != 0) {
-      print STDERR "Blocking [$ip] for [$blocktime] on rule [$context, $rule]\n";
+      print STDERR "Blocking [$ip] in ipfw_queue table for [$blocktime] on rule [$context, $rule]\n";
       eval {
           $ipfwq->execute($ip, $blocktime, $blocktime);
       };
@@ -93,6 +107,18 @@ while (<STDIN>) {
     else {
       print STDERR "Blocking [$ip] permanently on rule [$context, $rule]\n";
     }
+
+
+    print STDERR "UPSERTING  record for repeaters table on [$ip]\n";
+
+    eval {
+        $rep->execute($ip, $time, $time);
+    };
+    if ($@) {
+        warn "Insert into repeaters failed: $@";
+        next;
+    }
+
 
     # Send validated IP to add2BAD.pl script.
     print STDOUT "$ip\n";
