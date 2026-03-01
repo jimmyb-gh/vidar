@@ -72,7 +72,6 @@ CREATE TABLE public.offenders (
     entry text NOT NULL,
     context text NOT NULL,
     rule_num integer NOT NULL,
-    repeats integer DEFAULT 1 NOT NULL,
     evidence text NOT NULL,
     CONSTRAINT offenders_context_check CHECK ((length(context) <= 20))
 );
@@ -217,13 +216,6 @@ CREATE INDEX idx_offenders_entry ON public.offenders USING btree (entry);
 --
 
 CREATE INDEX idx_offenders_ip ON public.offenders USING btree (offender_ip);
-
-
---
--- Name: idx_offenders_repeats; Type: INDEX; Schema: public; Owner: jpb
---
-
-CREATE INDEX idx_offenders_repeats ON public.offenders USING btree (repeats);
 
 
 --
