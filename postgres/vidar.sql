@@ -2,6 +2,7 @@
 -- PostgreSQL database dump
 --
 
+\restrict VziH7aSb1LY82NeiGbZ1SFzA8kSNn7LQEFecRAdb3xUa7dnpKafNZEoJjBkkmD2
 
 -- Dumped from database version 17.7
 -- Dumped by pg_dump version 17.7
@@ -71,7 +72,7 @@ CREATE TABLE public.offenders (
     entry text NOT NULL,
     context text NOT NULL,
     rule_num integer NOT NULL,
-    repeats integer NOT NULL DEFAULT 1,
+    repeats integer DEFAULT 1 NOT NULL,
     evidence text NOT NULL,
     CONSTRAINT offenders_context_check CHECK ((length(context) <= 20))
 );
@@ -102,6 +103,42 @@ ALTER SEQUENCE public.offenders_id_seq OWNED BY public.offenders.id;
 
 
 --
+-- Name: repeaters; Type: TABLE; Schema: public; Owner: jpb
+--
+
+CREATE TABLE public.repeaters (
+    id bigint NOT NULL,
+    offender_ip inet NOT NULL,
+    repeat_count integer DEFAULT 1 NOT NULL,
+    first_seen timestamp without time zone DEFAULT now() NOT NULL,
+    last_seen timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.repeaters OWNER TO jpb;
+
+--
+-- Name: repeaters_id_seq; Type: SEQUENCE; Schema: public; Owner: jpb
+--
+
+CREATE SEQUENCE public.repeaters_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.repeaters_id_seq OWNER TO jpb;
+
+--
+-- Name: repeaters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jpb
+--
+
+ALTER SEQUENCE public.repeaters_id_seq OWNED BY public.repeaters.id;
+
+
+--
 -- Name: ipfw_queue id; Type: DEFAULT; Schema: public; Owner: jpb
 --
 
@@ -113,6 +150,13 @@ ALTER TABLE ONLY public.ipfw_queue ALTER COLUMN id SET DEFAULT nextval('public.i
 --
 
 ALTER TABLE ONLY public.offenders ALTER COLUMN id SET DEFAULT nextval('public.offenders_id_seq'::regclass);
+
+
+--
+-- Name: repeaters id; Type: DEFAULT; Schema: public; Owner: jpb
+--
+
+ALTER TABLE ONLY public.repeaters ALTER COLUMN id SET DEFAULT nextval('public.repeaters_id_seq'::regclass);
 
 
 --
@@ -129,6 +173,29 @@ ALTER TABLE ONLY public.ipfw_queue
 
 ALTER TABLE ONLY public.offenders
     ADD CONSTRAINT offenders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: repeaters repeaters_offender_ip_key; Type: CONSTRAINT; Schema: public; Owner: jpb
+--
+
+ALTER TABLE ONLY public.repeaters
+    ADD CONSTRAINT repeaters_offender_ip_key UNIQUE (offender_ip);
+
+
+--
+-- Name: repeaters repeaters_pkey; Type: CONSTRAINT; Schema: public; Owner: jpb
+--
+
+ALTER TABLE ONLY public.repeaters
+    ADD CONSTRAINT repeaters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_ipfw_queue_blocktime; Type: INDEX; Schema: public; Owner: jpb
+--
+
+CREATE INDEX idx_ipfw_queue_blocktime ON public.ipfw_queue USING btree (blocktime);
 
 
 --
@@ -153,17 +220,17 @@ CREATE INDEX idx_offenders_ip ON public.offenders USING btree (offender_ip);
 
 
 --
--- Name: idx_offenders_rule; Type: INDEX; Schema: public; Owner: jpb
---
-
-CREATE INDEX idx_offenders_rule ON public.offenders USING btree (rule_num);
-
-
---
 -- Name: idx_offenders_repeats; Type: INDEX; Schema: public; Owner: jpb
 --
 
 CREATE INDEX idx_offenders_repeats ON public.offenders USING btree (repeats);
+
+
+--
+-- Name: idx_offenders_rule; Type: INDEX; Schema: public; Owner: jpb
+--
+
+CREATE INDEX idx_offenders_rule ON public.offenders USING btree (rule_num);
 
 
 --
@@ -174,14 +241,8 @@ CREATE INDEX idx_offenders_time ON public.offenders USING btree (offense_time);
 
 
 --
--- Name: idx_ipfw_queue_blocktime; Type: INDEX; Schema: public; Owner: jpb
---
-
-CREATE INDEX idx_ipfw_queue_blocktime ON public.ipfw_queue USING btree (blocktime);
-
-
---
 -- PostgreSQL database dump complete
 --
 
+\unrestrict VziH7aSb1LY82NeiGbZ1SFzA8kSNn7LQEFecRAdb3xUa7dnpKafNZEoJjBkkmD2
 
