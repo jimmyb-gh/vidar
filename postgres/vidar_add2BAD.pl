@@ -22,7 +22,7 @@ while (<STDIN>) {
     print STDERR "Received $inputline\n";
     
     # Strict validation - only valid IPs
-    next unless $inputline =~ /^([\d\.]+|[:\da-fA-F]+)$/;
+    next unless $inputline =~ /^\s*([\d\.]+|[:\da-fA-F]+)$/;
     $ip = $1;  # untaint
 
     
