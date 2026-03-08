@@ -86,7 +86,7 @@ while ( $hash_ref = $sth->fetchrow_hashref ) {
         exit;
     }
 
-    sleep 1;
+#    sleep 1;
 
 }
 
