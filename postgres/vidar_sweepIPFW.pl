@@ -3,13 +3,36 @@ use strict;
 use warnings;
 use DBI;
 
-# $/ = "";  # paragraph mode
+
+#
+# usage: perl vidar_sweepIPFW.pl throttle
+#  ARGV                     0
+
+my $numargs = scalar @ARGV;
+
+if((scalar @ARGV) != 1) {
+  print STDERR "usage: perl vidar_sweepIPFW.ps throttle_seconds\n";
+  print STDERR "       throttle_seconds can be a fractional value \n";
+  exit 1;
+}
+
+# Prime the RNG.
+srand;
 
 print  STDERR "Start of Program\n" ;
 
+# Understand arguments.
+# Throttle uses select() so value can be fractional.
+my $throttle = $ARGV[0];
+if ($throttle == 0) {
+    $throttle = 0.5;    # default is one half second
+}
+
+
+
 print  STDERR "Setting up DB connection\n" ;
 
-# set for unbuffered output
+# Set for unbuffered output.  Piping Hot!
 $| = 1;
 
 # Prepare connection to database.
@@ -86,7 +109,9 @@ while ( $hash_ref = $sth->fetchrow_hashref ) {
         exit;
     }
 
-#    sleep 1;
+    # Fractional throttle.
+    select (undef, undef, undef, $throttle);
+
 
 }
 
@@ -94,3 +119,4 @@ print STDERR "End of Program.  Closing DB connection\n";
 
 $sth->finish();
 $dbh->disconnect();
+
