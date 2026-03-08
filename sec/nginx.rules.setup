@@ -91,7 +91,7 @@ action=copy 8A_NGINX_$1 %buf; \
        reset 0
 
 
-rem=RULE 15: Allow Pattern. \
+rem=RULE 15: Allow Patterns. \
       We don't care about the IP, just allow this line. \
       Try matching several at a time. Saves time.
 type=Single
@@ -102,7 +102,7 @@ desc=Allow patterns from Rule 15
 action=write @@@LOGS@@@/ALLOW.TXT $0 NGINX_15;
 
 
-rem=RULE 20: Allow Pattern. \
+rem=RULE 20: Allow Patterns.  See also above rule. \
       We don't care about the IP, just allow this line. \
       Try matching several at a time. Saves time.
 type=Single
@@ -131,7 +131,7 @@ type=Single
 ptype=RegExp
 context=NGINX
 pattern=^(.*?) \- \S+ \[(.*?)\] \"(?!GET\s+|POST\s+|HEAD\s+|OPTIONS\s+|PUT\s+|PATCH\s+)[^"]+
-desc=Invalid HTTP verb received from remote
+desc=Invalid HTTP verb received from remote. Immediate block for one week.
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1005_NGINX_$1|NGINX|1005|604800|$0; 
 
 
@@ -176,7 +176,7 @@ action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1013_NGINX_$1|NGINX|10
 
 # Other root parameter seekers.  
 rem=RULE 1015A: Root parameter seekers. \
-    Three strikes and you're out for 24 hours.
+    Three strikes in ten minutes and you're out for 24 hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -190,7 +190,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 # Other root parameter seekers.  
 rem=RULE 1015B: Root parameter seekers. \
-    Three strikes and you're out for 24 hours.
+    Three strikes in ten minutes and you're out for 24 hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX
@@ -206,7 +206,7 @@ action=copy 1015A_NGINX_$1 %buf; \
 
 
 rem=RULE 1020A: Check multiple E404 errors. \
-    Five strikes and you're out for two hours.
+    Five strikes in three minutes  and you're out for two hours.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -219,7 +219,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=RULE 1020B: Check multiple E404 errors. \
-    Five strikes in 180 seconds and you're out for two hours.
+    Five strikes in three minutes and you're out for two hours.
 type=SingleWithThreshold
 ptype=RegExp
 context=NGINX

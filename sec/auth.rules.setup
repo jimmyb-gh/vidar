@@ -45,7 +45,7 @@
 # Old desc=too many failed passwords from $2
 
 rem=Rule 1000A: SSH too many login failures from same host \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
 type=Single
 continue=TakeNext
@@ -59,14 +59,14 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=Rule 1000B: SSH too many login failures from same host \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
 type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
 desc=Too many failed SSH passwords from same host
-thresh=2
+thresh=3
 window=300
 action=copy 1000A_AUTH_$2 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -77,7 +77,7 @@ action=copy 1000A_AUTH_$2 %buf; \
 
 # Consider merging with rule 1000
 rem=Rule 1005A: SSH too many invalid user failures from same host \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
 type=Single
 continue=TakeNext
@@ -91,14 +91,14 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=Rule 1005B: SSH too invalid user failures from same host \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
 type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
 desc=Too many invalid user failures from same host
-thresh=2
+thresh=3
 window=300
 action=copy 1005A_AUTH_$2 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -123,14 +123,14 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
  
 
 rem=Rule 1010B: SSH invalid user notifications \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
 type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Invalid user (\S+) from (.*?) port (\d+)
 desc=Too many invalid user pw failures from same host
-thresh=2
+thresh=3
 window=300
 action=copy 1010A_AUTH_$2 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -185,7 +185,7 @@ action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_AUTH_$1|AUTH|103
 
 
 rem=Rule 1033A: SSH closed or reset connections \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]" \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by invalid user liuzhiping 149.102.148.200 port 35550 [preauth]"
 type=Single
@@ -200,7 +200,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=Rule 1033B: SSH closed or reset connections \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]" \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by invalid user liuzhiping 149.102.148.200 port 35550 [preauth]"
 type=SingleWithThreshold
@@ -208,7 +208,7 @@ ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
 desc=Too many closed or reset login attempts from remote host
-thresh=2
+thresh=3
 window=300
 action=copy 1033A_AUTH_$4 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -221,7 +221,7 @@ action=copy 1033A_AUTH_$4 %buf; \
 # "Connection closed by invalid user foo 165.227.183.117 port 42988 [preauth]" which is the more specific case
 # which should be caught by 1033.
 rem=Rule 1035A: SSH closed or reset connections, no user \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by 101.126.21.240 port 51032 [preauth]" \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by 123.209.109.231 port 50124 [preauth]"
 type=Single
@@ -239,7 +239,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 # "Connection closed by invalid user foo 165.227.183.117 port 42988 [preauth]" which is the more specific case
 # which should be caught by 1033.
 rem=Rule 1035B: SSH closed or reset connections, no user \
-    Two strikes in 5 minutes and you're out for an hour \
+    Three strikes in 5 minutes and you're out for an hour \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by 101.126.21.240 port 51032 [preauth]" \
     "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by 123.209.109.231 port 50124 [preauth]"
 type=SingleWithThreshold
@@ -247,7 +247,7 @@ ptype=RegExp
 context=AUTH
 pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
 desc=Too many closed or reset authentications by remote host
-thresh=2
+thresh=3
 window=300
 action=copy 1035A_AUTH_$2 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -306,7 +306,7 @@ action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070A_AUTH_$1|AUTH|107
 
 #desc=disconnected invalid or authenticating user $2 from $3
 rem=Rule 1080A: Disconnections \
-    Two strikes in 5 minutes and you're out \
+    Three strikes in 5 minutes and you're out \
     "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from authenticating user root 62.122.184.252 port 7431 [preauth]" \
     "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from invalid user RPM 62.122.184.252 port 32706 [preauth]" \
     Blocked for an hour.
@@ -324,7 +324,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 # Take the user out of desc.
 #desc=disconnected invalid or authenticating user $2 from $3
 rem=Rule 1080B: Disconnections \
-    Two strikes in 5 minutes and you're out \
+    Three strikes in 5 minutes and you're out \
     "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from authenticating user root 62.122.184.252 port 7431 [preauth]" \
     "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from invalid user RPM 62.122.184.252 port 32706 [preauth]" \
     Blocked for an hour.
@@ -333,7 +333,7 @@ ptype=RegExp
 context=AUTH
 pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
 desc=Too many disconnected invalid or authenticating users from remote host
-thresh=2
+thresh=3
 window=300
 action=copy 1080A_AUTH_$3 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -355,7 +355,7 @@ action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1085A_AUTH_$2|AUTH|108
 
 rem=Rule 1090A: Timeout before authentication \
     "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
-    Two strikes in 5 minutes, and you're out for an hour.
+    Three strikes in 5 minutes, and you're out for an hour.
 type=Single
 continue=TakeNext
 ptype=RegExp
@@ -369,13 +369,13 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 rem=Rule 1090B: Timeout before authentication \
     "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
-    Two strikes in 5 minutes, and you're out for an hour.
+    Three strikes in 5 minutes, and you're out for an hour.
 type=SingleWithThreshold
 ptype=RegExp
 context=AUTH
 pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
 desc=Timeout before authentication from remote host
-thresh=2
+thresh=3
 window=300
 action=copy 1090A_AUTH_$1 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
@@ -385,7 +385,7 @@ action=copy 1090A_AUTH_$1 %buf; \
 
 
 rem=Rule 1100A: SSH User not in AllowGroups \
-    Two strikes in 30 seconds and you're out \
+    Three strikes in 30 seconds and you're out \
     "Apr 26 16:41:09 vc6-27 sshd[6953]: User bin from 27.115.115.115 not allowed because none of user's groups are listed in AllowGroups" \
     Blocked for 4 hours.
 type=Single
@@ -400,7 +400,7 @@ action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
 
 
 rem=Rule 1100B: SSH User not in AllowGroups \
-    Two strikes in 30 seconds and you're out \
+    Three strikes in 30 seconds and you're out \
     "Apr 26 16:41:09 vc6-27 sshd[6953]: User bin from 27.115.115.115 not allowed because none of user's groups are listed in AllowGroups" \
     Blocked for 4 hours.
 type=SingleWithThreshold
@@ -408,7 +408,7 @@ ptype=RegExp
 context=AUTH
 pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
 desc=Too many users from remote host not in local AllowGroups
-thresh=2
+thresh=3
 window=30
 action=copy 1100A_AUTH_$2 %buf; \
        lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
