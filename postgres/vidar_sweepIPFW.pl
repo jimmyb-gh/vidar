@@ -10,9 +10,10 @@ use DBI;
 
 my $numargs = scalar @ARGV;
 
-if((scalar @ARGV) != 1) {
-  print STDERR "usage: perl vidar_sweepIPFW.ps throttle_seconds\n";
+if((scalar @ARGV) != 2) {
+  print STDERR "usage: perl vidar_sweepIPFW.ps throttle_seconds blocktime\n";
   print STDERR "       throttle_seconds can be a fractional value \n";
+  print STDERR "       blocktime is the amount of time the ip is supposed to be blocked.\n";
   exit 1;
 }
 
@@ -26,6 +27,11 @@ print  STDERR "Start of Program\n" ;
 my $throttle = $ARGV[0];
 if ($throttle == 0) {
     $throttle = 0.5;    # default is one half second
+}
+
+my $blocktime_value = $ARGV[1];
+if ($blocktime_value == 0) {
+    $blocktime_value =  3600;    # default is one hour
 }
 
 
@@ -46,22 +52,22 @@ my $dbh = DBI->connect(
 #$dbh->{FetchHashKeyName} = 'NAME_lc';
 
 # Prepared sweep statement for ipfw_queue table.
-# Look for entries that have aged out.
+# Look for entries that have aged out based on the command line variable blocktime_value.
 my $sth = $dbh->prepare(
-    "select * from ipfw_queue where remove_after <  now() - interval '5 minutes' and blocktime <= 600 order by remove_after desc"
+    "select * from ipfw_queue where remove_after <  now() - interval '5 minutes' and blocktime <= ? order by remove_after desc"
 );
 
 
 # Prepared delete statement for ipfw_queue table.
 # Look for entries that have aged out.
 my $delh = $dbh->prepare(
-    "delete from ipfw_queue where ip_addr = ? and blocktime <= 600"
+    "delete from ipfw_queue where ip_addr = ? and blocktime <= ?"
 );
 
 
 # Execute
 eval {
-    $sth->execute();
+    $sth->execute($blocktime_value);
 };
 
 if ($@) {
@@ -101,7 +107,7 @@ while ( $hash_ref = $sth->fetchrow_hashref ) {
 
     # Execute
     eval {
-        $delh->execute($ip_addr);
+        $delh->execute($ip_addr, $blocktime_value);
     };
 
     if ($@) {
