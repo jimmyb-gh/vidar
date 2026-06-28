@@ -1,0 +1,485 @@
+#
+#
+# Rules to manage /var/log/auth.log
+# Sun Jun 22 15:06:56 EDT 2025
+#
+# In general, keep user variables out of the desc parameter.
+# Otherwise SEC has a huge number of correlations.
+#
+# 
+# rem = RULE 0: TEST RULE
+# rem=Rule 1000: SSH too many login failures from same host
+# rem=Rule 1010: SSH invalid user notifications
+# rem=Rule 1020: SSH dropped connections
+# rem=Rule 103x: SSH closed connections Note: This log entry has multiple types. See Notes.
+# rem=Rule 1040: Bad key exchange negotiation
+# rem=Rule 1050: Reverse mapping failure
+# rem=Rule 1060: Banner exchange failuire
+# rem=Rule 1070: Address mapping failure 2
+# rem=Rule 1080: Disconnections
+# rem=Rule 1085: Disconnections 2
+# rem=Rule 1090: Timeout before authentication
+# rem=Rule 1100: SSH User not in AllowGroups
+# 
+# rem=Rule 2000: Root login during OFF_HOURS
+# rem=Rule 2010: Bad SU to root
+# rem=Rule 2020: Sudo during off hours
+# 
+# rem=Rule 9999: Cleanup rule
+# 
+###############################################################################
+
+#
+#type=Single
+#rem=Rule 0: TEST RULE
+#ptype=RegExp
+#pattern=([a-fA-F0-9.:]+)
+#desc=test rule for auth $1
+#context=AUTH
+#action=write /home/vidar/src/vidar/logs/TESTRULE.TXT %t: $0 AUTH_0; \
+#       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|TESTRULE_$1|AUTH|0|0|$0;
+
+
+# Take out the user name from the desc
+#desc=Too many failed SSH passwords from same host
+# Old desc=too many failed passwords from $2
+
+rem=Rule 1000A: SSH too many login failures from same host \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
+desc=Too many failed SSH passwords from same host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1000A_AUTH_$2 %line; \
+       set 1000A_AUTH_$2 300
+
+
+rem=Rule 1000B: SSH too many login failures from same host \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for root from 123.53.58.216 port 48770 ssh2"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Failed password for (\S+) from (.*?) port (\d+) \[preauth\]
+desc=Too many failed SSH passwords from same host
+thresh=3
+window=300
+action=copy 1000A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1000A_AUTH_$2|AUTH|1000|3600|%out; \
+       empty 1000A_AUTH_$2; \
+       reset 0
+
+
+# Consider merging with rule 1000
+rem=Rule 1005A: SSH too many invalid user failures from same host \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
+desc=Too many invalid user failures from same host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1005A_AUTH_$2 %line; \
+       set 1005A_AUTH_$2 300
+
+
+rem=Rule 1005B: SSH too invalid user failures from same host \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 26 16:40:27 vc6-27 sshd-session[11036]: Failed password for invalid user openfiler from 88.214.48.18 port 36928 ssh2"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Failed password for invalid user (\S+) from (.*?) port (\d+) ssh2
+desc=Too many invalid user failures from same host
+thresh=3
+window=300
+action=copy 1005A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1005A_AUTH_$2|AUTH|1005|3600|%out; \
+       empty 1005A_AUTH_$2; \
+       reset 0
+
+
+# Consider merging with 1005
+rem=Rule 1010A: SSH invalid user notifications \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Invalid user (\S+) from (.*?) port (\d+)
+desc=Too many invalid user pw failures from same host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1010A_AUTH_$2 %line; \
+       set 1010A_AUTH_$2 300
+ 
+
+rem=Rule 1010B: SSH invalid user notifications \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 19:41:35 vc6-27 sshd-session[48513]: Invalid user pw from 88.214.48.18 port 36912"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Invalid user (\S+) from (.*?) port (\d+)
+desc=Too many invalid user pw failures from same host
+thresh=3
+window=300
+action=copy 1010A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1010A_AUTH_$2|AUTH|1010|3600|%out; \
+       empty 1010A_AUTH_$2; \
+       reset 0
+
+
+rem=Rule 1020A: SSH dropped connections \
+    Three strikes in 30 seconds and you're out for an hour \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: drop connection #0 from [123.53.58.216]:58234 on [166.84.6.27]:22 penalty: failed authentication"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
+desc=Too many dropped SSH failed authentications from same host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1020A_AUTH_$2 %line; \
+       set 1020A_AUTH_$2 30
+
+
+rem=Rule 1020B: SSH dropped connections \
+    Three strikes in 30 seconds and you're out for an hour \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: drop connection #0 from [123.53.58.216]:58234 on [166.84.6.27]:22 penalty: failed authentication"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=drop connection (\S+) from \[(.*?)\](.*?)failed authentication
+desc=Too many dropped SSH failed authentications from same host
+thresh=3
+window=30
+action=copy 1020A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1020A_AUTH_$2|AUTH|1020|3600|%out; \
+       empty 1020A_AUTH_$2; \
+       reset 0
+
+ 
+# Note: The other log entry for uucp has no IP address.  This one does.
+rem=Rule 1030: SSH invalid user uucp \
+    Out on first strike. Permanent. \
+    "Oct  5 03:51:52 jimby sshd[83410]: Connection closed by invalid user uucp 60.211.242.34 port 28743 [preauth]"
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=Connection closed by invalid user uucp (.*?) port (\d+) \[preauth\]
+desc=Invalid user uucp login attempt from remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1030A_AUTH_$1|AUTH|1030|0|%out; \
+       empty 1030A_AUTH_$1; \
+       reset 0
+
+
+rem=Rule 1033A: SSH closed or reset connections \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by invalid user liuzhiping 149.102.148.200 port 35550 [preauth]"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=Too many closed or reset login attempts from remote host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1033A_AUTH_$4 %line; \
+       set 1033A_AUTH_$4 300
+
+
+rem=Rule 1033B: SSH closed or reset connections \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by authenticating user root 195.178.110.50 port 30598 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by invalid user liuzhiping 149.102.148.200 port 35550 [preauth]"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Connection (closed|reset) by (authenticating|invalid) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=Too many closed or reset login attempts from remote host
+thresh=3
+window=300
+action=copy 1033A_AUTH_$4 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1033A_AUTH_$4|AUTH|1033|3600|%out; \
+       empty 1033A_AUTH_$4; \
+       reset 0
+
+ 
+# NOTE: Rule 1035 must come after 1033 to prevent 1035 from catching
+# "Connection closed by invalid user foo 165.227.183.117 port 42988 [preauth]" which is the more specific case
+# which should be caught by 1033.
+rem=Rule 1035A: SSH closed or reset connections, no user \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by 101.126.21.240 port 51032 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by 123.209.109.231 port 50124 [preauth]"
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
+desc=Too many closed or reset authentications by remote host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1035A_AUTH_$2 %line; \
+       set 1035A_AUTH_$2 300
+
+
+# NOTE: Rule 1035 must come after 1033 to prevent 1035 from catching
+# "Connection closed by invalid user foo 165.227.183.117 port 42988 [preauth]" which is the more specific case
+# which should be caught by 1033.
+rem=Rule 1035B: SSH closed or reset connections, no user \
+    Three strikes in 5 minutes and you're out for an hour \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection closed by 101.126.21.240 port 51032 [preauth]" \
+    "Apr 27 15:49:57 vc6-27 sshd-session[34334]: Connection reset by 123.209.109.231 port 50124 [preauth]"
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Connection (closed|reset) by (.*?) port (\d+) \[preauth\]
+desc=Too many closed or reset authentications by remote host
+thresh=3
+window=300
+action=copy 1035A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1035A_AUTH_$2|AUTH|1035|3600|%out; \
+       empty 1035A_AUTH_$2; \
+       reset 0
+
+
+rem=Rule 1040: Bad key exchange negotiation \
+    "Apr 28 03:08:49 vc6-27 sshd-session[79718]: Unable to negotiate with 142.44.212.226 port 44534: no matching host key type found. ..." \
+    "Apr 27 15:53:49 vc6-27 sshd-session[34415]: Unable to negotiate with 54.238.242.152 port 63215: no matching key exchange method found. ..." \
+     Blocked for 24 hours.
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=Unable to negotiate with (.*?) port (\d+)\: no matching
+desc=SSH key exchange or host key type negotiation failed with remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1040A_AUTH_$1|AUTH|1040|86400|%out;
+
+
+# Note: the first word was dropped as it is currently in lower case
+# and someone, somewhere will fix it to Sentence case.
+rem=Rule 1050: Reverse mapping failure. \
+    "reverse mapping checking getaddrinfo for scanner-203.scanner.com [199.45.154.132] failed."  \
+     Blocked for 24 hours.
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=mapping checking getaddrinfo for (.*?) \[(.*?)\] failed\.
+desc=Reverse mapping failed via getaddrinfo for remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1050A_AUTH_$2|AUTH|1050|86400|%out;
+
+
+# See note above regarding capitalization.
+rem=Rule 1060: Banner exchange failure. \
+    "banner exchange: Connection from 206.168.34.35 port 44458: invalid format" \
+     Blocked for 24 hours.
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=exchange\: Connection from (.*?) port (.*?)\: invalid format
+desc=Banner exchange failure, invalid format from remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1060A_AUTH_$1|AUTH|1060|86400|%out;
+
+
+rem=Rule 1070: Address mapping failure 2. \
+    "Address 179.43.144.242 maps to hostedby.privatelayer.com, but this does not map back to the address." \
+     Blocked for 24 hours.
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=Address (.*?) maps to (.*?)\, but this does not map back
+desc=Mapping failure for address to remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1070A_AUTH_$1|AUTH|1070|86400|%out;
+
+
+#desc=disconnected invalid or authenticating user $2 from $3
+rem=Rule 1080A: Disconnections \
+    Three strikes in 5 minutes and you're out \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from authenticating user root 62.122.184.252 port 7431 [preauth]" \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from invalid user RPM 62.122.184.252 port 32706 [preauth]" \
+    Blocked for an hour.
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=Too many disconnected invalid or authenticating users from remote host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1080A_AUTH_$3 %line; \
+       set 1080A_AUTH_$3 300
+
+
+# Take the user out of desc.
+#desc=disconnected invalid or authenticating user $2 from $3
+rem=Rule 1080B: Disconnections \
+    Three strikes in 5 minutes and you're out \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from authenticating user root 62.122.184.252 port 7431 [preauth]" \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnected from invalid user RPM 62.122.184.252 port 32706 [preauth]" \
+    Blocked for an hour.
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Disconnected from (invalid|authenticating) user (\S+) (.*?) port (\d+) \[preauth\]
+desc=Too many disconnected invalid or authenticating users from remote host
+thresh=3
+window=300
+action=copy 1080A_AUTH_$3 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$3|%s|1080A_AUTH_$3|AUTH|1080|3600|%out; \
+       empty 1080A_AUTH_$3; \
+       reset 0
+
+
+rem=Rule 1085: Disconnections 2 \
+    "Apr 27 09:50:26 vc6-27 sshd-session[28706]: Disconnecting authenticating user root 175.215.143.90 port 49602: Too many authentication failures [preauth]" \
+    Blocked for 4 hours.
+type=Single
+ptype=RegExp
+context=AUTH
+pattern=Disconnecting authenticating user (\S+) (.*?) port (\d+)(.*?)\[preauth\]
+desc=Disconnect authenticating user, too many failures from remote host
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1085A_AUTH_$2|AUTH|1085|14400|%out;
+
+
+rem=Rule 1090A: Timeout before authentication \
+    "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
+    Three strikes in 5 minutes, and you're out for an hour.
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
+desc=Timeout before authentication from remote host
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1090A_AUTH_$1 %line; \
+       set 1090A_AUTH_$1 300
+
+
+rem=Rule 1090B: Timeout before authentication \
+    "Apr 27 23:00:40 vc6-27 sshd[6953]: Timeout before authentication for connection from 193.176.23.6 to 166.84.6.27, pid = 65347" \
+    Three strikes in 5 minutes, and you're out for an hour.
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=Timeout before authentication for connection from (.*?) to (.*?), pid = (\d+)
+desc=Timeout before authentication from remote host
+thresh=3
+window=300
+action=copy 1090A_AUTH_$1 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1090A_AUTH_$1|AUTH|1090|3600|%out; \
+       empty 1090A_AUTH_$1; \
+       reset 0
+
+
+rem=Rule 1100A: SSH User not in AllowGroups \
+    Three strikes in 30 seconds and you're out \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: User bin from 27.115.115.115 not allowed because none of user's groups are listed in AllowGroups" \
+    Blocked for 4 hours.
+type=Single
+continue=TakeNext
+ptype=RegExp
+context=AUTH
+pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
+desc=Too many users from remote host not in local AllowGroups
+action=lcall %line $0 -> ( sub { my $s = $_[0]; chomp $s; return $s; } ); \
+       add 1100A_AUTH_$2 %line; \
+       set 1100A_AUTH_$2 30
+
+
+rem=Rule 1100B: SSH User not in AllowGroups \
+    Three strikes in 30 seconds and you're out \
+    "Apr 26 16:41:09 vc6-27 sshd[6953]: User bin from 27.115.115.115 not allowed because none of user's groups are listed in AllowGroups" \
+    Blocked for 4 hours.
+type=SingleWithThreshold
+ptype=RegExp
+context=AUTH
+pattern=User (\S+) from (\S+) not allowed because none of user's groups are listed in AllowGroups
+desc=Too many users from remote host not in local AllowGroups
+thresh=3
+window=30
+action=copy 1100A_AUTH_$2 %buf; \
+       lcall %out %buf -> ( sub { my $s=$_[0] // ""; $s =~ s/\\/\\\\/g; $s =~ s/\|/\\|/g; $s =~ s/\r?\n/\\n/g; return $s; } ); \
+       write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$2|%s|1100A_AUTH_$2|AUTH|1100|14400|%out; \
+       empty 1100A_AUTH_$2; \
+       reset 0
+
+
+
+#######################################################################################
+#
+# Rules 2000 and above are for OFF_HOURS notifications.
+# The context keyword takes one internal context and one external context
+# in a logical AND operation. Effectively, it says "If this line is coming
+# from a file with internal context 'AUTH' and if it happens during external
+# context 'OFF_HOURS', process the line."
+#
+
+type=Single
+rem=Rule 2000: Root login during OFF_HOURS. \
+    "ROOT LOGIN (root) ON ttyv4"
+ptype=RegExp
+context=AUTH && OFF_HOURS
+pattern=ROOT LOGIN \((\S+)\) ON (\S+)
+desc=NOTICE: root login off hours on $2
+action=write /home/vidar/src/vidar/logs/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [$0] [AUTH_2000] ; \
+       add %C %t [$0] [AUTH_2000]
+
+
+type=Single
+rem=Rule 2010: Bad SU to root. \
+    "BAD SU jpb to root on /dev/ttyu0"
+ptype=RegExp
+pattern=BAD SU (\S+) to root on (\S+)
+desc=NOTICE: BAD SU $1 to root on $2
+context=AUTH && OFF_HOURS
+action=write /home/vidar/src/vidar/logs/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [$0] [AUTH_2010] ; \
+       add %C %t [$0] [AUTH_2010]
+
+
+type=Single
+rem=Rule 2020: Sudo during off hours \
+    "Apr 28 02:06:11 vc6-27 sudo[73788]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/bin/sh" \
+    "Apr 28 02:06:19 vc6-27 sudo[73798]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/usr/local/bin/git remote show" \
+    "Apr 28 02:06:37 vc6-27 sudo[73810]:    user1 : TTY=pts/2 ; PWD=/home/user1/src/fooz ; USER=root ; COMMAND=/usr/local/bin/git push phorge --all"
+ptype=RegExp
+context=AUTH && OFF_HOURS
+pattern=sudo\[\d+\]\:\w+(\S+)\s\:\s(\S+)\s\;\s(\S+)\s\;\s(\S+)\s\;\s(.*)$
+desc=NOTICE: sudo during OFF_HOURS by $1 on $2, at $3 as $4 command $5
+action=write /home/vidar/src/vidar/logs/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [$0] [AUTH_2020] ; \
+       add %C %t [$0] [AUTH_2020]
+
+
+# Health Check Rule
+type=Single
+rem=Rule 9998: Health check rule.  Announce our good health if we get this notice in our input file.
+ptype=RegExp
+context=AUTH
+pattern=AUTH_HEALTH_CHECK
+desc=AUTH_HEALTH_CHECK_RECEIVED
+action=write /home/vidar/src/vidar/logs/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [%s] [AUTH_9998]
+
+
+# Cleanup Rule
+type=Single
+rem=Rule 9999: Cleanup rule.  \
+    Anything not handled goes into NOT_MATCHED_AUTH.TXT
+ptype=RegExp
+pattern=.*
+desc=cleanup rule $0
+context=AUTH
+action=write /home/vidar/src/vidar/logs/NOT_MATCHED_AUTH.TXT $0 AUTH_9999
+
+

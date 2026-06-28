@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# run_readSEC.sh - wrapper script to grab the environment
+#                  and run perl ${VIDAR_HOME}/postgres/vidar_readSEC.pl
+#   We need this wrapper to pick up the environment before calling the above.
+#
+# NOTE: Pick up the environment from the production etc directory
+#       If you are developing vidar, ensure your local ~/src/vidar/etc/*  and
+#       /usr/local/vidar/etc/* are aligned!!
+#  
+
+. /usr/local/vidar/etc/vidar_env.sh
+
+exec perl "${VIDAR_HOME}/postgres/vidar_readSEC.pl"
+

@@ -1,0 +1,54 @@
+#
+#
+# Activity Rules.
+# Check for unusual activity.
+#
+# User activity check from .../ps.txt
+# This rule looks for the specified commands being run and notes context (%C from calendar rules).
+#                1           2       3       4       5                                                   6
+#               CPU       STARTED  RUSER    UID     CMD                                                 ARGS
+#pattern =\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+# 
+type=Single
+ptype=RegExp
+pattern=\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+desc=echo input line
+context=PROC
+continue=TakeNext
+action=write @@@LOGS@@@/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [$1] [$2] [$3] [$4] [$5] [$6] [%C] ; \
+         add %C %t [$1] [$2] [$3] [$4] [$5] [$6] [%C]
+
+
+#Network Activity  from .../net4.txt and .../net6.txt and notes context (%C from calendar rules).
+#Active Internet connections
+#Proto Rexmit OOORcv 0-win  Local Address                                 Foreign Address
+#tcp6       0      0      0 2600:1700:3901:4940:c6ef:bbff:fe7e:fb9c.11313 2606:4700:4400::6812:202f.443
+#tcp4       0      0      0 192.168.1.152.60886                           34.107.243.93.https
+#tcp6       0      0      0 ::1.23012                                     ::1.44200
+#tcp6       0      0      0 2600:1700:3901:4940:c6ef:bbff:fe7e:fb9c.11922 2607:f8b0:4002:c03::5e.443
+#tcp4       0      0      0 192.168.1.152.63247                           23.4.43.62.http
+#
+#            1                             2       3
+#         Proto                          Local   Foreign
+#pattern =(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
+# 
+type=Single
+ptype=RegExp
+pattern=(tcp4|tcp6)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(\S+).*$
+desc=echo input line
+context=NETW
+continue=TakeNext
+action=write @@@LOGS@@@/sec.out %{.year}-%{.mon}-%{.mday} %{.hmsstr} [$1] [$2] [$3] [%C] ; \
+         add %C %t [$1] [$2] [$3] [%C]
+
+
+# Report Rule for context %C
+
+type=Single
+ptype=RegExp
+pattern=ContextReport
+desc=Generate Report
+context=PROC
+action=report %C  /bin/cat >> @@@LOGS@@@/report_of_%.year%.mon%.mday\T%.hour%.min
+
+

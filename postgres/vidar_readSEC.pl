@@ -1,0 +1,220 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use DBI;
+use Time::Piece;
+use Time::Seconds;
+
+#
+# vidar_readSEC.pl - read SEC pipe-delimited output and update the
+#                    PostgreSQL database.
+#
+
+# Subroutine to compute the remove_after time to insert into PostgreSQL.
+# If there is a problem with the incoming ofense_time variable,
+# set the return time to now + 4 hour (using perl's time function).
+sub compute_remove_after {
+    my ($offense_time, $block_seconds) = @_;
+
+    warn "missing offense_time\n"  unless defined $offense_time;
+    warn "missing block_seconds\n" unless defined $block_seconds;
+    warn "invalid block_seconds\n" unless $block_seconds =~ /^\d+$/;
+
+    if($offense_time =~ /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/) {
+      my $t = Time::Piece->strptime($offense_time, "%Y-%m-%d %H:%M:%S");
+      my $remove_after = $t + $block_seconds;
+      return $remove_after->strftime("%Y-%m-%d %H:%M:%S");
+    }
+    else {
+      my $remove_after = Time::Piece->new(time + 14400); # add 4 hours to current time
+      return $remove_after->strftime("%Y-%m-%d %H:%M:%S");
+    }
+
+}
+
+#
+# Sat Jun  6 20:59:40 EDT 2026
+# Note: Now using just single table model for PostgreSQL DB.
+#       The execute statement for insert uses the "UPSERT" version
+#       and updates only the repeat_count if the offender_ip already exists.
+#
+# The caller should source the vidar environment at
+#  /usr/local/vidar/etc/vidar_env.sh
+#
+
+
+print  STDERR "Start of Program\n" ;
+
+my $vidar_home = $ENV{VIDAR_HOME};
+
+print STDERR "vidar_home = [${vidar_home}]\n";
+
+exit if $vidar_home eq "";
+
+print  STDERR "Setting up DB connection\n" ;
+
+# set for unbuffered output
+$| = 1;
+
+# Prepare connection to database.
+#
+# Now using the peer authorization method.  (See vidar_connectiontest.pl)
+# Peer authentication requires an update to pg_hba.conf (see example at
+# ~/src/vidar/postgres/vidar.sql.
+
+my $dbh = DBI->connect(
+    "dbi:Pg:dbname=vidar",
+    undef,
+    undef,
+    {
+        RaiseError     => 1,
+        PrintError     => 0,
+        AutoCommit     => 1,
+        pg_enable_utf8 => 1,
+    }
+) or die "Can't connect: $DBI::errstr";
+
+print STDERR  "DBI->connect() succeeded!\n";
+
+# Prepared statement for offenders table using perl quoting.
+my $offenders_sth = $dbh->prepare(q{
+     INSERT INTO offenders (offense_time,
+                            offender_ip,
+                            desc_line,
+                            entry,
+                            context,
+                            rule_num,
+                            permanent_block,
+                            block_seconds,
+                            active_block,
+                            remove_after,
+                            ipfw_removed_at,
+                            repeat_count,
+                            evidence) 
+     VALUES (?,
+             ?::inet,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?)
+     ON CONFLICT (offender_ip)
+     DO UPDATE
+     SET
+         offense_time    = EXCLUDED.offense_time,
+         desc_line       = EXCLUDED.desc_line,
+         entry           = EXCLUDED.entry,
+         context         = EXCLUDED.context,
+         rule_num        = EXCLUDED.rule_num,
+         permanent_block = EXCLUDED.permanent_block,
+         block_seconds   = EXCLUDED.block_seconds,
+         active_block    = EXCLUDED.active_block,
+         remove_after    = EXCLUDED.remove_after,
+         ipfw_removed_at = EXCLUDED.ipfw_removed_at,
+         repeat_count    = offenders.repeat_count + 1,
+         evidence        = left (
+                              EXCLUDED.evidence
+                              || E'\n--- previous evidence ---\n'
+                              || offenders.evidence,
+                              50000
+                           )
+     });
+
+
+print  STDERR "Ready for input\n" ;
+
+while (<STDIN>) {
+    my $inputline = $_;
+    chomp;
+    next if /^\s*$/;
+
+# DEBUGGING
+    print STDERR "[$inputline]\n";
+    
+    # $block_seconds is an integer number of seconds to block the IP.
+    # Each sec rule has it's own block_seconds value or 0 (permanent block).
+
+    # Each sec write action outputs a line in this format.
+    my ($time, $ip, $desc, $entry, $context, $rule, $block_seconds, $evidence) = split /\|/, $_, 8;
+    my $repeat_count = 1; # the default
+
+    my $active_block = 1;
+    my $ipfw_removed_at = undef; #undef is correct for a NULL value in DBI
+
+    # Sanitize inputs
+    unless (defined $time && $time =~ /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/) {
+        warn "Invalid timestamp format: [$time]\n";
+        next;
+    }
+    
+    unless (defined $ip && $ip =~ /^[\d\.:a-fA-F]+$/) {
+        warn "Invalid IP format: [$ip]\n";
+        next;
+    }
+    
+    unless (defined $rule && $rule =~ /^\d+$/) {
+        warn "Invalid rule number: [$rule]\n";
+        next;
+    }
+    
+    unless (defined $block_seconds && $block_seconds =~ /^\d+$/) {
+        warn "Invalid block_seconds: [$block_seconds]\n";
+        next;
+    }
+    
+    unless (defined $context && length($context) <= 20) {
+        warn "Invalid context: [$context]\n";
+        next;
+    }
+    
+    # logs can be anything - no shell execution risk in INSERT
+    
+# DEBUGGING ONLY
+    print STDERR "Inserting record into offenders table for rule [$rule]\n";
+
+    my $remove_after = compute_remove_after($time, $block_seconds);
+
+    eval {
+    # Note that $block_seconds is actually a flag value:
+    # if it is zero, it's a permanent block, if any other value it is not.
+    # Therefore, the conditional below checks the flag value and assigns
+    # 1 (true) if the incoming value is zero, or 0 (false) if not
+    # to $permanent_block.
+    # The values are set in every SEC rule write line.
+    my $permanent_block = ($block_seconds == 0) ? 1 : 0;
+        
+        $offenders_sth->execute($time,
+                                $ip,
+                                $desc,
+                                $entry,
+                                $context,
+                                $rule,
+                                $permanent_block,
+                                $block_seconds,
+                                $active_block,
+                                $remove_after,
+                                $ipfw_removed_at,
+                                $repeat_count,
+                                $evidence);
+    };
+    if ($@) {
+        warn "Insert into offenders failed: $@";
+        next;
+    }
+
+
+    # Send validated IP to add2BAD.pl script.
+    print STDOUT "$ip\n";
+}
+
+
+print STDERR "End of Program.  Closing DB connection\n";
+
+$offenders_sth->finish();
+$dbh->disconnect();

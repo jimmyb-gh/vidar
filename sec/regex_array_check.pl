@@ -1,0 +1,1 @@
+../utils/regex_array_check.pl
