@@ -9,9 +9,6 @@ logs/
 *.tmp
 
 # local machine config / secrets
-etc/vidar_local.sh
-etc/vidar_dev.sh
-etc/vidar_prod.sh
 *.secret
 *.key
 
