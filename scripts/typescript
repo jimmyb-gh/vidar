@@ -1,384 +1,0 @@
-Script started on Fri Jun 26 11:08:43 2026
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # ./vidar_l[58C[Kstart_postgres.sh
-Vidar environment is: DEVELOPMENT
-Checking directories: [/home/vidar/src/vidar/logs]
-Checking directories: [/home/vidar/src/vidar/pids]
-Checking directories: [/home/vidar/src/vidar/scripts]
-Checking directories: [/home/vidar/src/vidar/sec]
-Checking directories: [/home/vidar/src/vidar/utils]
-Checking directories: [/home/vidar/src/vidar/input]
-Removing old PID files
-./vidar_start_postgres.sh: 209: Syntax error: Unterminated quoted string
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # 
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # 
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # 
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # 
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # ./vidar_start_postgres.sh
-Vidar environment is: DEVELOPMENT
-Checking directories: [/home/vidar/src/vidar/logs]
-Checking directories: [/home/vidar/src/vidar/pids]
-Checking directories: [/home/vidar/src/vidar/scripts]
-Checking directories: [/home/vidar/src/vidar/sec]
-Checking directories: [/home/vidar/src/vidar/utils]
-Checking directories: [/home/vidar/src/vidar/input]
-Removing old PID files
-Removing old logs ....
-No logs to delete.
-Unloading IPFW if necessary...
-
-Waiting for ipfw to load, return code [1]
-  sleeping for 5 seconds
-IPFW loaded.  Starting SEC...
-Fixing rulesets...
-Value VIDAR_LOGS=/home/vidar/src/vidar/logs will be used...
-activity.rules done
-auth.rules done
-email.rules done
-nginx.rules done
-calendar.rules done
-Fixup done.
-Waiting for Sec startup.
-
-Vidar pipeline started.
-Sleeping 5 seconds to let Sec settle...
-Use Sec pid to kill Vidar pipeline.
-Kill with -TERM to Sec pid [24999]
-or run /home/vidar/src/vidar/scripts/vidar_stop.sh
-
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # cd ../utlis
-cd: ../utlis: No such file or directory
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # ls -al
-total 62
-drwxr-xr-x   2 vidar vidar   12 Jun 26 11:08 .
-drwxr-xr-x  13 vidar vidar   13 Jun 25 13:27 ..
--rwxr-xr-x   1 vidar vidar  548 Jun 25 13:17 ipfw_good_table.sh
--rwxr-xr-x   1 vidar vidar 2210 Jun 19 21:59 ipfw_up.sh
--r--------   1 vidar vidar  151 Jun 11 13:35 run_ipfw.sh
--rwxr-xr-x   1 vidar vidar 2075 Jun 22 21:44 run_sec.sh
--rw-r--r--   1 root  vidar 1877 Jun 26 11:11 typescript
--rwxr-xr-x   1 vidar vidar 1375 Jun 25 13:23 vidar_dumpBAD.sh
--rwxr-xr-x   1 vidar vidar  902 Jun 25 13:24 vidar_healthcheck.sh
--rwxr-xr-x   1 vidar vidar 1389 Jun 25 13:26 vidar_importBAD.sh
--rwxr-xr-x   1 root  wheel 5152 Jun 26 11:10 vidar_start_postgres.sh
--rwxr-xr-x   1 root  wheel 1500 Jun 25 15:14 vidar_stop.sh
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # cd ../utlis
-cd: ../utlis: No such file or directory
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # ls -al
-total 62
-drwxr-xr-x   2 vidar vidar   12 Jun 26 11:08 .
-drwxr-xr-x  13 vidar vidar   13 Jun 25 13:27 ..
--rwxr-xr-x   1 vidar vidar  548 Jun 25 13:17 ipfw_good_table.sh
--rwxr-xr-x   1 vidar vidar 2210 Jun 19 21:59 ipfw_up.sh
--r--------   1 vidar vidar  151 Jun 11 13:35 run_ipfw.sh
--rwxr-xr-x   1 vidar vidar 2075 Jun 22 21:44 run_sec.sh
--rw-r--r--   1 root  vidar 1877 Jun 26 11:11 typescript
--rwxr-xr-x   1 vidar vidar 1375 Jun 25 13:23 vidar_dumpBAD.sh
--rwxr-xr-x   1 vidar vidar  902 Jun 25 13:24 vidar_healthcheck.sh
--rwxr-xr-x   1 vidar vidar 1389 Jun 25 13:26 vidar_importBAD.sh
--rwxr-xr-x   1 root  wheel 5152 Jun 26 11:10 vidar_start_postgres.sh
--rwxr-xr-x   1 root  wheel 1500 Jun 25 15:14 vidar_stop.sh
-root@fbsd15-1-rc1:/home/vidar/src/vidar/scripts # cd ..
-root@fbsd15-1-rc1:/home/vidar/src/vidar # ls -al
-total 63
-drwxr-xr-x  13 vidar vidar 13 Jun 25 13:27 .
-drwxr-xr-x   3 vidar vidar  4 Jun 25 14:11 ..
-drwxr-xr-x   2 root  wheel  6 Jun 25 13:29 deprecated
-drwxr-xr-x   2 vidar vidar  5 Jun 25 12:30 etc
-drwxr-xr-x   2 vidar vidar  8 Jun 26 11:10 input
-drwxr-xr-x   2 vidar vidar  3 Jun 18 16:49 libexec
-drwxr-xr-x   2 vidar vidar  7 Jun 26 11:10 logs
-drwxr-xr-x   2 vidar vidar  3 Jun 26 11:10 pids
-drwxr-xr-x   2 vidar vidar 11 Jun 22 21:56 postgres
-drwxr-xr-x   2 vidar vidar 12 Jun 26 11:08 scripts
-drwxr-xr-x   2 vidar vidar 17 Jun 26 10:55 sec
-drwxr-xr-x   2 vidar vidar  5 Jun 22 11:30 testdata
-drwxr-xr-x   2 vidar vidar  7 Jun 25 13:29 utils
-root@fbsd15-1-rc1:/home/vidar/src/vidar # cd utils
-root@fbsd15-1-rc1:/home/vidar/src/vidar/utils # ls -al
-total 40
-drwxr-xr-x   2 vidar vidar    7 Jun 25 13:29 .
-drwxr-xr-x  13 vidar vidar   13 Jun 25 13:27 ..
--rw-r--r--   1 vidar vidar 1730 Jun 25 13:31 push.sh
--rw-r--r--   1 vidar vidar 3313 Jun 25 14:02 randomip.pl
--rwxr-xr-x   1 vidar vidar 2266 Jun 11 09:54 regex_array_check.pl
--rwxr-xr-x   1 vidar vidar  477 Jun 11 09:54 regex_check.pl
--rw-r--r--   1 vidar vidar  683 Jun 11 09:54 throt.pl
-root@fbsd15-1-rc1:/home/vidar/src/vidar/utils # /bin/sh push.sh 0.04[67C[K5
-Throttle is [0.05]
-VIDAR Environment: DEVELOPMENT
-VIDAR_HOME=     [/home/vidar/src/vidar]
-VIDAR_SEC=      [/home/vidar/src/vidar/sec]
-VIDAR_SCRIPTS=  [/home/vidar/src/vidar/scripts]
-VIDAR_UTILS=    [/home/vidar/src/vidar/utils]
-VIDAR_PIDS=     [/home/vidar/src/vidar/pids]
-VIDAR_INPUT=    [/home/vidar/src/vidar/input]
-VIDAR_TESTDATA= [/home/vidar/src/vidar/testdata]
-VIDAR_ETC=      [/home/vidar/src/vidar/etc]
-VIDAR_LIBEXEC=  [/home/vidar/src/vidar/libexec]
-DEBUGGING:
-VIDAR_SEC_STDERR=     [/home/vidar/src/vidar/logs/sec_stderr.txt]
-VIDAR_READSEC_STDERR= [/home/vidar/src/vidar/logs/readSEC_stderr.txt]
-VIDAR_ADD2BAD_STDERR= [/home/vidar/src/vidar/logs/add2BAD_stderr.txt]
-INPUTS:                                                 OUTPUTS:
-AUTHLOG=  [/home/vidar/src/vidar/input/auth.log]            VIDAR_LOGS=[/home/vidar/src/vidar/logs]
-EMAILLOG= [/home/vidar/src/vidar/input/maillog]
-NGINXLOG= [/home/vidar/src/vidar/input/access.log]              SEC Dump (Debug) Location:
-PSLOG   = [/home/vidar/src/vidar/input/ps.txt]              VIDAR_DUMP=[/home/vidar/src/vidar/logs]
-NET4LOG = [/home/vidar/src/vidar/input/net4.txt]
-NET6LOG = [/home/vidar/src/vidar/input/net6.txt]
-PIDS: [ 48052]
-PIDS: [ 48052 48503]
-PIDS: [ 48052 48503 49697]
-^CCaught interrupt.  Killing all child processes...
-killing 48052
-killing 48503
-killing 49697
-root@fbsd15-1-rc1:/home/vidar/src/vidar/utils # 
-root@fbsd15-1-rc1:/home/vidar/src/vidar/utils # ls -al /usr/local/vidar
-total 79
-drwxr-xr-x  13 root wheel 13 Jun 20 20:28 .
-drwxr-xr-x  16 root wheel 16 Jun 10 14:57 ..
-drwxr-xr-x   2 root wheel  6 Jun 22 22:24 etc
-drwxr-xr-x   2 root wheel  9 Jun 20 20:23 input
-drwxr-xr-x   2 root wheel  3 Jun 18 16:49 libexec
-drwxr-xr-x   2 root wheel 15 Jun 21 21:37 logs
-drwxr-xr-x   2 root wheel  7 Jun 20 20:29 misc
-drwxr-xr-x   2 root wheel  3 Jun 21 21:36 pids
-drwxr-xr-x   2 root wheel  9 Jun 20 21:58 postgres
-drwxr-xr-x   2 root wheel 13 Jun 11 11:20 scripts
-drwxr-xr-x   2 root wheel 16 Jun 11 09:53 sec
-drwxr-xr-x   2 root wheel  6 Jun 21 22:04 testdata
-drwxr-xr-x   2 root wheel  9 Jun 11 09:54 utils
-root@fbsd15-1-rc1:/home/vidar/src/vidar/utils # cd /usr/local/vidar
-root@fbsd15-1-rc1:/usr/local/vidar # ls -al
-total 79
-drwxr-xr-x  13 root wheel 13 Jun 20 20:28 .
-drwxr-xr-x  16 root wheel 16 Jun 10 14:57 ..
-drwxr-xr-x   2 root wheel  6 Jun 22 22:24 etc
-drwxr-xr-x   2 root wheel  9 Jun 20 20:23 input
-drwxr-xr-x   2 root wheel  3 Jun 18 16:49 libexec
-drwxr-xr-x   2 root wheel 15 Jun 21 21:37 logs
-drwxr-xr-x   2 root wheel  7 Jun 20 20:29 misc
-drwxr-xr-x   2 root wheel  3 Jun 21 21:36 pids
-drwxr-xr-x   2 root wheel  9 Jun 20 21:58 postgres
-drwxr-xr-x   2 root wheel 13 Jun 11 11:20 scripts
-drwxr-xr-x   2 root wheel 16 Jun 11 09:53 sec
-drwxr-xr-x   2 root wheel  6 Jun 21 22:04 testdata
-drwxr-xr-x   2 root wheel  9 Jun 11 09:54 utils
-root@fbsd15-1-rc1:/usr/local/vidar # ls -al etc
-total 31
-drwxr-xr-x   2 root wheel    6 Jun 22 22:24 .
-drwxr-xr-x  13 root wheel   13 Jun 20 20:28 ..
--rwxr-xr-x   1 root wheel 2956 Jun 22 22:21 ORIG_vidar_env.sh
--rwxr-xr-x   1 root wheel 3003 Jun 22 22:23 vidar_dev.sh
-lrwxr-xr-x   1 root wheel   12 Jun 22 22:24 vidar_env.sh -> vidar_dev.sh
--rwxr-xr-x   1 root wheel 2977 Jun 22 22:23 vidar_prod.sh
-root@fbsd15-1-rc1:/usr/local/vidar # ls -al libexec
-total 14
-drwxr-xr-x   2 root wheel   3 Jun 18 16:49 .
-drwxr-xr-x  13 root wheel  13 Jun 20 20:28 ..
--rwxr-xr-x   1 root wheel 403 Jun 18 16:49 vidar_ipfw_delete.sh
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # 
-root@fbsd15-1-rc1:/usr/local/vidar # cd
-root@fbsd15-1-rc1:~ # ls -al
-total 60
-drwxr-x---   4 root wheel   15 Jun 26 14:59 .
-drwxr-xr-x  20 root wheel   22 Jun 26 10:36 ..
--rw-------   1 root wheel  781 Jun 11 21:40 .bash_history
--rw-r--r--   1 root wheel 1011 May 21 20:00 .cshrc
--rw-r--r--   1 root wheel   66 May 21 20:00 .k5login
--rw-------   1 root wheel   48 Jun 26 11:48 .lesshst
--rw-r--r--   1 root wheel  316 May 21 20:00 .login
--rw-r--r--   1 root wheel  472 May 21 20:00 .profile
--rw-------   1 root wheel 6274 Jun 23 15:06 .psql_history
--rw-------   1 root wheel 2859 Jun 26 14:59 .sh_history
--rw-r--r--   1 root wheel 1213 May 21 20:00 .shrc
-drwx------   2 root wheel    4 Jun 20 20:29 .ssh
--rw-r--r--   1 root wheel  534 Jun 10 15:05 install.sh
--rw-r--r--   1 root wheel  835 May 27 18:34 pkg_manual.txt
-drwxr-xr-x   4 root wheel    4 Jun 22 10:09 src
-root@fbsd15-1-rc1:~ # curl
-curl: try 'curl --help' or 'curl --manual' for more information
-root@fbsd15-1-rc1:~ # curl 0[27C[K-L https://cpanmin.us } poerl [56C[55C[K[54C[K[53C[K[52C[K[51C[K[50C[49C[K| perl - -M https://cpan.metacp an.ort[5C[Kg -=n Mo[12C[K[11C[K[10C[9C[K[8C[Kn Mojolicioiut[21C[Ks
-  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
-                                 Dload  Upload  Total   Spent   Left   Speed
-  0      0   0      0   0      0      0      0                              0100 295.9k 100 295.9k   0      0 172.7k      0   00:01   00:01         250.2k100 295.9k 100 295.9k   0      0 163.8k      0   00:01   00:01         250.2k100 295.9k 100 295.9k   0      0 149.6k      0   00:01   00:01         250.2k100 295.9k 100 295.9k   0      0 140.5k      0   00:02   00:02         250.2k
-! Finding Mojolicioius () on mirror https://cpan.metacpan.org failed.
-! Couldn't find module or a distribution Mojolicioius
-root@fbsd15-1-rc1:~ # [22Ccurl -L https://cpanmin.us | perl - -M https://cpan.metacp an.org -n Mojolicioius[19Cus[K
-  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
-                                 Dload  Upload  Total   Spent   Left   Speed
-  0      0   0      0   0      0      0      0                              0100 295.9k 100 295.9k   0      0 245.9k      0   00:01   00:01              0100 295.9k 100 295.9k   0      0 240.4k      0   00:01   00:01              0100 295.9k 100 295.9k   0      0 231.0k      0   00:01   00:01              0
---> Working on Mojolicious
-Fetching https://cpan.metacpan.org/authors/id/S/SR/SRI/Mojolicious-9.46.tar.gz ... OK
-Configuring Mojolicious-9.46 ... OK
-Building Mojolicious-9.46 ... OK
-Successfully installed Mojolicious-9.46
-1 distribution installed
-root@fbsd15-1-rc1:~ # 
-root@fbsd15-1-rc1:~ # 
-root@fbsd15-1-rc1:~ # 
-root@fbsd15-1-rc1:~ # 
-root@fbsd15-1-rc1:~ # cd src
-root@fbsd15-1-rc1:~/src # mkdir mojo
-root@fbsd15-1-rc1:~/src # cd moJO
-cd: moJO: No such file or directory
-root@fbsd15-1-rc1:~/src # [26Ccd moJO[26C[Kcd mo[31Cjo/
-root@fbsd15-1-rc1:~/src/mojo # ls -al
-total 1
-drwxr-xr-x  2 root wheel 2 Jun 26 18:28 .
-drwxr-xr-x  5 root wheel 5 Jun 26 18:28 ..
-root@fbsd15-1-rc1:~/src/mojo # vi hello.pl
-[1;25r[m[4l[?1h=[H[2J[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[H[24Bhello.pl: new file: line 1[H[24B[J[Huse Mojiolicious::Lite;[1B [1B get ;.== ;/;'/' => {text => 'OI heart Mojoku=licious!'};[1B [1B app->start;[1B [19BCopying file for recovery...[J[19A[19Bhello.pl: new file: 6 lines, 83 characters[19A[?1l>[19B
-[25;1H[?1l>root@fbsd15-1-rc1:~/src/mojo # morbo hil[39C[K[38C[K[37C[Khell[41Co.pl 
-Web application available at http://127.0.0.1:3000
-[2026-06-26 18:34:20.12449] [58504] [trace] [lKm46zgKn7mj] GET "/"
-[2026-06-26 18:34:20.14259] [58504] [trace] [lKm46zgKn7mj] 200 OK (0.017949s, 55.713/s)
-^Croot@fbsd15-1-rc1:~/src/mojo # [31Cmorbo hello.pl[31C[3Pvi[9C
-[1;25r[m[4l[?1h=[H[2Juse Mojolicious::Lite;[2Bget '/' => {text => 'I heart Mojolicious!'};[2Bapp->start;[2B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[H[24Bhello.pl: unmodified: line 1[H[24B[J[23A[1Bget '/' => {text => 'I heart Mojolicious!\'};n'};\'};n'};[22BCopying file for recovery...[J[3;46H[22Bhello.pl: 6 lines, 87 characters[3;45H[?1l>[22B
-[25;1H[?1l>root@fbsd15-1-rc1:~/src/mojo # [31Cvi hello.pl[31C[4hmor[4lbo[9C
-Web application available at http://127.0.0.1:3000
-[2026-06-26 18:35:39.66423] [62565] [trace] [upsTd3NMOfn0] GET "/"
-[2026-06-26 18:35:39.68058] [62565] [trace] [upsTd3NMOfn0] 200 OK (0.016758s, 59.673/s)
-^Croot@fbsd15-1-rc1:~/src/mojo # [31Cmorbo hello.pl[31C[3Pvi[9C
-[1;25r[m[4l[?1h=[H[2Juse Mojolicious::Lite;[2Bget '/' => {text => 'I heart Mojolicious!\n\n'};[2Bapp->start;[2B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[H[24Bhello.pl: unmodified: line 1[H[24B[J[23A[1Bget '/' => {text => 'I heart Mojolicious![22BCopying file for recovery...[J[3;42H[1P\n'};[K[5Dn'};[K'};[K7[4;24r8[1BM[1;25r[3;42H[K[1B'};7[4;24r8M[1;25r[5;1H[20B[?1l>[25;1H[?1l>[1] + Suspended               vi hello.pl
-root@fbsd15-1-rc1:~/src/mojo # fg
-vi hello.pl
-[1;25r[m[4l[H[2Juse Mojolicious::Lite;[2Bget '/' => {text => 'I heart Mojolicious![2B'};[2Bapp->start;[2B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B[?1h=[H[2Juse Mojolicious::Lite;[2Bget '/' => {text => 'I heart Mojolicious![2B'};[2Bapp->start;[2B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[1B~[19A[20Bhello.pl: 8 lines, 85 characters[20A[?1l>[20B
-[25;1H[?1l>root@fbsd15-1-rc1:~/src/mojo # [31Cfg[31Cvi hello.pl[31C[4hmor[4lbo[9C
-Web application available at http://127.0.0.1:3000
-[2026-06-26 18:37:19.06112] [63886] [trace] [-aChFD9DBRQ6] GET "/"
-[2026-06-26 18:37:19.07701] [63886] [trace] [-aChFD9DBRQ6] 200 OK (0.015794s, 63.315/s)
-[2026-06-26 18:49:20.96738] [63886] [trace] [oMj40NYun67G] GET "/"
-[2026-06-26 18:49:20.97485] [63886] [trace] [oMj40NYun67G] 200 OK (0.007126s, 140.331/s)
-^Croot@fbsd15-1-rc1:~/src/mojo # morbo duck[40C[Kt[40C[Kiu[41C[K[40C[K[39C[Kductt[43C[K[42C[K[41C[K[40C[K[39C[K[38C[K[37C[K[36C[35C[K[34C[K[33C[K[32C[K[31C[Kls -al
-total 6
-drwxr-xr-x  2 root wheel   4 Jun 26 18:38 .
-drwxr-xr-x  5 root wheel   5 Jun 26 18:28 ..
--rw-r--r--  1 root wheel 690 Jun 26 18:48 ducttape.pl
--rw-r--r--  1 root wheel  85 Jun 26 18:36 hello.pl
-root@fbsd15-1-rc1:~/src/mojo # cu[32C[K[31C[Kmorbo duct[41Ctape.pl 
-Web application available at http://127.0.0.1:3000
-Array found where operator expected (Missing semicolon on previous line?) at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Can't load application from file "/root/src/mojo/ducttape.pl": syntax error at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Execution of /root/src/mojo/ducttape.pl aborted due to compilation errors.
-^Croot@fbsd15-1-rc1:~/src/mojo # [31Cmorbo ducttape.pl
-Web application available at http://127.0.0.1:3000
-Array found where operator expected (Missing semicolon on previous line?) at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Can't load application from file "/root/src/mojo/ducttape.pl": syntax error at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Execution of /root/src/mojo/ducttape.pl aborted due to compilation errors.
-^Croot@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # [31Cmorbo ducttape.pl
-Web application available at http://127.0.0.1:3000
-Array found where operator expected (Missing semicolon on previous line?) at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Can't load application from file "/root/src/mojo/ducttape.pl": syntax error at /root/src/mojo/ducttape.pl line 21, near "_DATA_
-
-@@"
-Execution of /root/src/mojo/ducttape.pl aborted due to compilation errors.
-^Croot@fbsd15-1-rc1:~/src/mojo # [31Cmorbo ducttape.pl
-Web application available at http://127.0.0.1:3000
-[2026-06-26 18:56:28.96262] [79291] [trace] [r1BhKBN51oXW] GET "/"
-[2026-06-26 18:56:28.97354] [79291] [trace] [r1BhKBN51oXW] Routing to a callback
-[2026-06-26 18:56:28.99379] [79291] [trace] [r1BhKBN51oXW] Rendering template "index.html.ep" from DATA section
-[2026-06-26 18:56:29.03587] [79291] [trace] [r1BhKBN51oXW] 200 OK (0.073223s, 13.657/s)
-[2026-06-26 19:02:40.87496] [79291] [trace] Bad request start-line
-[2026-06-26 19:02:40.88012] [79291] [trace] [esuXm5IvvkY4] GET "/"
-[2026-06-26 19:02:40.88292] [79291] [trace] [esuXm5IvvkY4] Routing to a callback
-[2026-06-26 19:02:40.88517] [79291] [trace] [esuXm5IvvkY4] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:02:40.89493] [79291] [trace] [esuXm5IvvkY4] 200 OK (0.014482s, 69.051/s)
-[2026-06-26 19:02:40.95707] [79291] [trace] Bad request start-line
-[2026-06-26 19:02:40.96168] [79291] [trace] [5sK94CW71ReN] GET "/"
-[2026-06-26 19:02:40.96448] [79291] [trace] [5sK94CW71ReN] Routing to a callback
-[2026-06-26 19:02:40.96687] [79291] [trace] [5sK94CW71ReN] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:02:40.97590] [79291] [trace] [5sK94CW71ReN] 200 OK (0.012913s, 77.441/s)
-[2026-06-26 19:03:30.82839] [79291] [trace] [yUFJL3Mejus6] GET "/"
-[2026-06-26 19:03:30.83238] [79291] [trace] [yUFJL3Mejus6] Routing to a callback
-[2026-06-26 19:03:30.83480] [79291] [trace] [yUFJL3Mejus6] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:03:30.84470] [79291] [trace] [yUFJL3Mejus6] 200 OK (0.015991s, 62.535/s)
-[2026-06-26 19:04:00.59314] [79291] [trace] [jV9OdHSiyifm] GET "/"
-[2026-06-26 19:04:00.59645] [79291] [trace] [jV9OdHSiyifm] Routing to a callback
-[2026-06-26 19:04:00.59950] [79291] [trace] [jV9OdHSiyifm] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:04:00.60893] [79291] [trace] [jV9OdHSiyifm] 200 OK (0.015505s, 64.495/s)
-^Croot@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # [31Cmorbo ducttape.pl[47C[K[46C[K[45C[K[44C[K[43C[K[42C[K[41C[K[40C[K[39C[K[38C[K[37C[Kexample[44C.pl 
-Web application available at http://127.0.0.1:3000
-[2026-06-26 19:16:35.75232] [97336] [trace] [vWqlGUp09FSQ] GET "/"
-[2026-06-26 19:16:35.76290] [97336] [trace] [vWqlGUp09FSQ] Routing to a callback
-[2026-06-26 19:16:35.78207] [97336] [trace] [vWqlGUp09FSQ] Rendering template "index.html.ep" from DATA section
-[2026-06-26 19:16:35.88242] [97336] [trace] [vWqlGUp09FSQ] 200 OK (0.130249s, 7.678/s)
-[2026-06-26 19:16:50.49563] [97336] [trace] [oQdlf7l8NmsF] GET "/"
-[2026-06-26 19:16:50.50140] [97336] [trace] [oQdlf7l8NmsF] Routing to a callback
-[2026-06-26 19:16:50.50385] [97336] [trace] [oQdlf7l8NmsF] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:16:50.51815] [97336] [trace] [oQdlf7l8NmsF] 200 OK (0.022219s, 45.007/s)
-[2026-06-26 19:17:10.17451] [97336] [trace] [I3fF6Axhx3bZ] GET "/"
-[2026-06-26 19:17:10.17857] [97336] [trace] [I3fF6Axhx3bZ] Routing to a callback
-[2026-06-26 19:17:10.18193] [97336] [trace] [I3fF6Axhx3bZ] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:17:10.19436] [97336] [trace] [I3fF6Axhx3bZ] 200 OK (0.019545s, 51.164/s)
-
-
-
-[2026-06-26 19:18:30.30285] [97336] [trace] [56UDajZ4oo4l] GET "/"
-[2026-06-26 19:18:30.30932] [97336] [trace] [56UDajZ4oo4l] Routing to a callback
-[2026-06-26 19:18:30.31232] [97336] [trace] [56UDajZ4oo4l] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:18:30.32445] [97336] [trace] [56UDajZ4oo4l] 200 OK (0.021297s, 46.955/s)
-[2026-06-26 19:18:39.43151] [97336] [trace] [188x2v_BwPIS] GET "/"
-[2026-06-26 19:18:39.43603] [97336] [trace] [188x2v_BwPIS] Routing to a callback
-[2026-06-26 19:18:39.43862] [97336] [trace] [188x2v_BwPIS] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:18:39.45284] [97336] [trace] [188x2v_BwPIS] 200 OK (0.020988s, 47.646/s)
-[2026-06-26 19:18:41.97379] [97336] [trace] [TdOqpPX3-rRl] GET "/"
-[2026-06-26 19:18:41.97760] [97336] [trace] [TdOqpPX3-rRl] Routing to a callback
-[2026-06-26 19:18:41.98024] [97336] [trace] [TdOqpPX3-rRl] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:18:41.99212] [97336] [trace] [TdOqpPX3-rRl] 200 OK (0.018044s, 55.420/s)
-[2026-06-26 19:19:12.56877] [97336] [trace] [VmNCnOmbUjaR] GET "/"
-[2026-06-26 19:19:12.57454] [97336] [trace] [VmNCnOmbUjaR] Routing to a callback
-[2026-06-26 19:19:12.57854] [97336] [trace] [VmNCnOmbUjaR] Rendering cached template "index.html.ep" from DATA section
-[2026-06-26 19:19:12.59674] [97336] [trace] [VmNCnOmbUjaR] 200 OK (0.027668s, 36.143/s)
-^Croot@fbsd15-1-rc1:~/src/mojo # 
-root@fbsd15-1-rc1:~/src/mojo # exit
-
-Script done on Fri Jun 26 19:20:31 2026
