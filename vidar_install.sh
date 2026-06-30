@@ -19,6 +19,11 @@ greetings() {
     echo
 }
 
+warn() {
+    echo "WARN: $*" >&2
+    echo
+}
+
 die() {
     echo "ERROR: $*" >&2
     echo
@@ -82,8 +87,6 @@ install_tree() {
     #      |- testdata/    - Vidar files to use for testing
     #      |- utils/       - Vidar utilities to perform testing
 
-set -x
-
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME"
 #    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME/src"
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST"
@@ -95,12 +98,13 @@ set -x
         --exclude .git \
         --exclude .gitignore \
         --exclude .gitkeep \
-        --exclude vidar_install.sh \
         --exclude deprecated \
+        --exclude vidar_install.sh \
         -cf - . | tar -C "$VIDAR_DST" -xf -
 
     chown -R "$VIDAR_USER:$VIDAR_GROUP" "$VIDAR_DST"
-set +x
+
+
 }
 
 fix_permissions() {
@@ -115,24 +119,27 @@ fix_permissions() {
         \( -name "*.sh" -o -name "*.pl" \) \
         -exec chmod 0755 {} + 2>/dev/null || true
 
-    [ -f "$VIDAR_DST/vidar_install.sh" ] && chmod 0755 "$VIDAR_DST/vidar_install.sh"
+# excluded     [ -f "$VIDAR_DST/vidar_install.sh" ] && chmod 0755 "$VIDAR_DST/vidar_install.sh"
 }
 
 fix_runtime_symlinks() {
-    info "Setting runtime symlinks"
+    info "Setting runtime symlink to development file for ${VIDAR_ETC}/vidar_env.sh"
 
     # Default to dev unless explicitly changed later.
-    if [ -f "$VIDAR_DST/etc/vidar_dev.sh" ]; then
-        ln -sfn vidar_dev.sh "$VIDAR_DST/etc/vidar_env.sh"
-        chown -h root:"$VIDAR_GROUP" "$VIDAR_DST/etc/vidar_env.sh"
-    fi
+    ( cd ${VIDAR_ETC}
+        if [ -f "$VIDAR_ETC/vidar_dev.sh" ]; then
+            ln -sfn vidar_dev.sh "$VIDAR_ETC/vidar_env.sh"
+            chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
+        fi
+    )
+
 }
 
 create_runtime_dirs() {
     info "Creating runtime directories"
 
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST/logs"
-    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST/run"
+    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST/pids"
 }
 
 
@@ -148,6 +155,51 @@ show_all_vars() {
     echo "VIDAR_USER  =[${VIDAR_USER}]"
     echo "WHEREAMI    =[${WHEREAMI}]"
     echo
+}
+
+
+vidar_sudoers_setup() {
+    info "Setting up vidar in /usr/local/etc/sudoers.d/vidar"
+
+    VIDAR_SUDOERSD=/usr/local/etc/sudoers.d        # The directory
+    VIDAR_SUDOERSD_FILE="${VIDAR_SUDOERSD}/vidar"  # The file
+    VISUDO="/usr/local/sbin/visudo"                # The validator 
+
+    [ -x "$VISUDO" ] || die "visudo not found or not executable at [${VISUDO}]"
+    [ -n "${VIDAR_DST:-}" ] || die "VIDAR_DST is not set in vidar_sudoers_setup()."
+
+    install -d -o root -g wheel -m 0750 "$VIDAR_SUDOERSD"
+
+    # ChatGPT recommends checking the sudoers.d/vidar file with visudo
+    # so we do that first:
+
+    tmpfile="$(mktemp ./vidar_sudoers.XXXXXX)" || die "mktemp file in vidar_sudoers_setup()."
+
+    cat > "$tmpfile" <<EOF
+vidar ALL=(root) NOPASSWD: ${VIDAR_DST}/libexec/vidar_ipfw_delete.sh
+EOF
+
+    chown root:wheel "$tmpfile"
+    chmod 0440 "$tmpfile"
+    "$VISUDO" -c -f "$tmpfile" || {
+        rm -f "$tmpfile"
+        die "sudoers validation failed in vidar_sudoers_setup()."
+    }
+    
+    # Just replace any existing sudoers.d/vidar file
+    if [ -f "${VIDAR_SUDOERSD}/vidar" ]
+    then
+        # Move it out of the way.
+        mv "${VIDAR_SUDOERSD}/vidar" "${VIDAR_SUDOERSD}/vidar.OLD"
+    fi
+
+    # Install what we need for dev or prod
+    install -o root -g wheel -m 0440 "$tmpfile" "$VIDAR_SUDOERSD_FILE"
+    rm -f "$tmpfile"
+
+    # And set permissions on the helper file.
+     chown root:wheel "$VIDAR_DST/libexec/vidar_ipfw_delete.sh"
+     chmod 0550  "$VIDAR_DST/libexec/vidar_ipfw_delete.sh"
 }
 
 
@@ -186,7 +238,7 @@ main() {
 
     # Set some initial variables.
     WHEREAMI=$(pwd)
-    echo $WHEREAMI
+    echo "Current directory is ${WHEREAMI}."
 
     # VIDAR_SRC is the top level of the Vidar source tree, typically /home/vidar/src/vidar
     if [ -d ${WHEREAMI}/etc -a -d ${WHEREAMI}/input \
@@ -199,8 +251,10 @@ main() {
       VIDAR_SRC=$(pwd)
       echo "Assuming VIDAR_SRC as ${VIDAR_SRC}"
     else
-      echo "Directory [${WHEREAMI}] does not seem to be a correct Vidar src?"
-      echo "Check directory contents or perform a git pull in this directory"
+      echo
+      warn "Directory [${WHEREAMI}] does not seem to be a complete and correct Vidar source dir."
+      die "Check directory contents or perform a git clone in this directory."
+       
     fi
 
     # Need VIDAR_HOME to be the home directory of user vidar.
@@ -227,15 +281,22 @@ main() {
     check_required_commands
 
     show_all_vars
+
     ensure_vidar_user_and_group
+
     install_tree
-exit
+
     fix_permissions
+
     fix_runtime_symlinks
+
     create_runtime_dirs
 
+    vidar_sudoers_setup
+
     info "Vidar base install complete"
-    info "Next steps: database setup, sudoers setup, rc/service setup"
+
+    info "Next steps: database setup, rc/service setup"
 }
 
 main "$@"
