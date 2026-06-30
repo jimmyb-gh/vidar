@@ -44,10 +44,12 @@ check_required_commands() {
     done
 }
 
-ensure_user_group() {
+ensure_vidar_user_and_group() {
     if ! pw groupshow "$VIDAR_GROUP" >/dev/null 2>&1; then
         info "Creating group $VIDAR_GROUP"
         pw groupadd "$VIDAR_GROUP"
+    else
+        info "Vidar group name [${VIDAR_GROUP}] already exists."
     fi
 
     if ! id "$VIDAR_USER" >/dev/null 2>&1; then
@@ -55,8 +57,11 @@ ensure_user_group() {
         pw useradd "$VIDAR_USER" \
             -g "$VIDAR_GROUP" \
             -m \
+            -c "Vidar Odinson" \
             -d "$VIDAR_HOME" \
             -s /bin/sh
+    else
+        info "Vidar password entry [${VIDAR_USER}] already exists."
     fi
 }
 
@@ -72,13 +77,15 @@ install_tree() {
     #      |- logs/        - Vidar runtime logs
     #      |- pids/        - Vidar runtime process ids
     #      |- postgres/    - Vidar scripts that interact with PostgreSQL
-    #      |- scripts/     - Vidar runtie scripts
+    #      |- scripts/     - Vidar runtime scripts
     #      |- sec/         - SEC rules files and setup files
     #      |- testdata/    - Vidar files to use for testing
     #      |- utils/       - Vidar utilities to perform testing
 
+set -x
+
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME"
-    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME/src"
+#    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME/src"
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST"
 
     info "Installing repository files"
@@ -86,10 +93,14 @@ install_tree() {
     # First pass: simple copy. We can refine this later with rsync, mtree, or explicit install rules.
     tar -C "$VIDAR_SRC" \
         --exclude .git \
-        --exclude logs \
+        --exclude .gitignore \
+        --exclude .gitkeep \
+        --exclude vidar_install.sh \
+        --exclude deprecated \
         -cf - . | tar -C "$VIDAR_DST" -xf -
 
     chown -R "$VIDAR_USER:$VIDAR_GROUP" "$VIDAR_DST"
+set +x
 }
 
 fix_permissions() {
@@ -135,6 +146,7 @@ show_all_vars() {
     echo "VIDAR_MODE  =[${VIDAR_MODE}]"
     echo "VIDAR_SRC   =[${VIDAR_SRC}]"
     echo "VIDAR_USER  =[${VIDAR_USER}]"
+    echo "WHEREAMI    =[${WHEREAMI}]"
     echo
 }
 
@@ -194,8 +206,6 @@ main() {
     # Need VIDAR_HOME to be the home directory of user vidar.
     VIDAR_HOME=/home/vidar
 
-    VIDAR_DST="${VIDAR_HOME}/vidar"
-
     # VIDAR_DST is the destination for a successful install.
     # The install depends on the VIDAR_MODE parameter passed.
     # The development default is VIDAR_HOME/dev.
@@ -208,7 +218,7 @@ main() {
         VIDAR_DST=/usr/local/vidar    # Production
     fi
     
-    VIDAR_ETC="${VIDAR_HOME}/etc"
+    VIDAR_ETC="${VIDAR_DST}/etc"
 
     VIDAR_USER="vidar"
     VIDAR_GROUP="vidar"
@@ -216,11 +226,10 @@ main() {
 
     check_required_commands
 
-show_all_vars
-exit;
-
-    ensure_user_group
+    show_all_vars
+    ensure_vidar_user_and_group
     install_tree
+exit
     fix_permissions
     fix_runtime_symlinks
     create_runtime_dirs
