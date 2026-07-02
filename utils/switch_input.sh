@@ -50,7 +50,7 @@ die() {
 }
 
 info() {
-    echo "==> $*"
+    echo "==> INFO: $*"
 }
 
 need_root() {

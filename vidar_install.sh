@@ -20,18 +20,18 @@ greetings() {
 }
 
 warn() {
-    echo "WARN: $*" >&2
+    echo "==> WARN: $*" >&2
     echo
 }
 
 die() {
-    echo "ERROR: $*" >&2
+    echo "==> ERROR: $*" >&2
     echo
     exit 1
 }
 
 info() {
-    echo "==> $*"
+    echo "==> INFO: $*"
 }
 
 need_root() {
