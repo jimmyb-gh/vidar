@@ -122,17 +122,19 @@ fix_permissions() {
 # excluded     [ -f "$VIDAR_DST/vidar_install.sh" ] && chmod 0755 "$VIDAR_DST/vidar_install.sh"
 }
 
-fix_runtime_symlinks() {
-    info "Setting runtime symlink to development file for ${VIDAR_ETC}/vidar_env.sh"
-
+fix_runtime_environment() {
+    info "Setting runtime environment in ${VIDAR_ETC}/vidar_env.sh"
     # Default to dev unless explicitly changed later.
     ( cd ${VIDAR_ETC}
-        if [ -f "$VIDAR_ETC/vidar_dev.sh" ]; then
-            ln -sfn vidar_dev.sh "$VIDAR_ETC/vidar_env.sh"
-            chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
-        fi
-    )
+        # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
+        # These have to be done inline so the variable values will transfer.
+        cat vidar_env.sh.setup | \
+            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]" \
+                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]" \
+                 > vidar_env.sh
 
+      chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
+    )
 }
 
 create_runtime_dirs() {
@@ -144,6 +146,8 @@ create_runtime_dirs() {
 
 
 show_all_vars() {
+
+    echo "The following environment variables will be used:"
     echo
     echo "VIDAR_DB    =[${VIDAR_DB}]"
     echo "VIDAR_DST   =[${VIDAR_DST}]"
@@ -153,7 +157,6 @@ show_all_vars() {
     echo "VIDAR_MODE  =[${VIDAR_MODE}]"
     echo "VIDAR_SRC   =[${VIDAR_SRC}]"
     echo "VIDAR_USER  =[${VIDAR_USER}]"
-    echo "WHEREAMI    =[${WHEREAMI}]"
     echo
 }
 
@@ -222,11 +225,14 @@ main() {
     case "$VIDAR_MODE" in
         [Dd][Ee][Vv])
             VIDAR_MODE=dev  # Set to lower case.
+            VIDAR_ENVIRONMENT=DEVELOPMENT
             ;;
         [Pp][Rr][Oo][Dd])
             VIDAR_MODE=prod
+            VIDAR_ENVIRONMENT=PRODUCTION
             ;;
         *)
+            warn "Incorrect parameter [${VIDAR_MODE}]"
             usage
             ;;
     esac
@@ -288,7 +294,7 @@ main() {
 
     fix_permissions
 
-    fix_runtime_symlinks
+    fix_runtime_environment
 
     create_runtime_dirs
 
