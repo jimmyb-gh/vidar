@@ -27,7 +27,7 @@
 
 
 usage() {
-    echo "usage: $0 test|prod" >&2
+    echo "usage: $0 test | prod | status" >&2
     exit 1
 }
 
@@ -105,6 +105,10 @@ switch_input_mode() {
             authlog='/var/log/auth.log'
             emaillog='/var/log/maillog'
             nginxlog='/var/log/nginx/access.log'
+            ;;
+        [Ss][Tt][Aa][Tt][Uu][Ss])
+            SHOW_ENV="Y"
+            . "${VIDAR_ETC}/vidar_env.sh"
             ;;
         *)
             warn "Incorrect parameter [${MODE}]"
