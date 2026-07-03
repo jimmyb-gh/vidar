@@ -109,6 +109,7 @@ switch_input_mode() {
         [Ss][Tt][Aa][Tt][Uu][Ss])
             SHOW_ENV="Y"
             . "${VIDAR_ETC}/vidar_env.sh"
+            exit 0;
             ;;
         *)
             warn "Incorrect parameter [${MODE}]"
