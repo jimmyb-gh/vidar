@@ -14,7 +14,8 @@ desc=SASL PLAIN authentication failed from jpb on $2.  ALLOW TO PASS.
 action=write /home/vidar/src/vidar/logs/ALLOW_EMAIL.TXT %{.year}-%{.mon}-%{.mday} %{.hmsstr}: %s [EMAIL_100]
 
 
-
+#Thu Jul  2 22:01:46 EDT 2026: Changed block seconds to 48 hours (172800 seconds)
+# When ratcheting use an aggressive policy.
 rem=Rule 1000: SASL login authentication failed. \
       "warning: unknown[49.88.204.36]: SASL LOGIN authentication failed: Invalid authentication mechanism:" \
       Blocked for one hour.
@@ -23,7 +24,7 @@ ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL LOGIN authentication failed: Invalid authentication mechanism
 desc=SASL login authentication failed, invalid authentication mechanism
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|3600|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1000_EMAIL_$1|EMAIL|1000|172800|$0;
 
 
 rem=Rule 1002: Dovecot passwd-file probing \
@@ -37,6 +38,8 @@ desc=Dovecot password file probing from remote host
 action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$4|%s|1002_EMAIL_$4|EMAIL|1002|0|$0;
 
 
+#Thu Jul  2 22:01:46 EDT 2026: Changed block seconds to 48 hours (172800 seconds)
+# When ratcheting use an aggressive policy.
 rem=Rule 1010: SASL PLAIN authentication failed. \
       "warning: unknown[45.148.10.89]: SASL PLAIN authentication failed: (reason unavailable), sasl_username=angela" \
       Blocked for 4 hours.
@@ -45,7 +48,7 @@ ptype=RegExp
 context=EMAIL
 pattern=warning: unknown\[(.*?)\]\: SASL PLAIN authentication failed\: \(reason unavailable\)\, sasl\_username\=(\w+)
 desc=SASL PLAIN authentication failed (reason unavailable)
-action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010_EMAIL_$1|EMAIL|1010|14400|$0;
+action=write - %{.year}-%{.mon}-%{.mday} %{.hmsstr}|$1|%s|1010_EMAIL_$1|EMAIL|1010|172800|$0;
 
 
 rem=Rule 1020: Hostname does not resolve to address. \
