@@ -38,64 +38,79 @@ export VIDAR_ADD2BAD_STDERR=${VIDAR_LOGS}/add2BAD_stderr.txt
 export VIDAR_PIDS=${VIDAR_HOME}/pids
 
 
+# Use these file for testing.
+# Run the utils/push.sh  script to test.
 # Vidar input logs
 export VIDAR_INPUT=${VIDAR_HOME}/input
 
-
-# This variable shows whether Vidar gets its input from
-# production sources (/var/log/nginx/access, /var/log/maillog, etc.)
-# or from test input in VIDAR_INPUT.
-#
-# Set this variable to ON to use the testing utility VIDAR_UTILS/push.sh
-# or set it to OFF to use production sources.
-export VIDAR_TEST="ON"
-
 #
 # Vidar input files.
-# See the above discussion on variable VIDAR_TEST
 # These are INPUT logs, not OUTPUT logs.
-# Use these file for testing.
-# Run the utils/push.sh  script to test.
 #
-# The vidar_install.sh script sets VIDAR_INPUT to
-# kkkkkkkkkk
+# Running 'vidar_install.sh dev' initializes VIDAR_INPUT to
+# test mode (${VIDAR_INPUT}/auth.log) 
+# whereas running 'vidar_install prod' initializes VIDAR_INPUT
+# to production mode (/var/log/....)
 
 export AUTHLOG=${VIDAR_INPUT}/auth.log
 export EMAILLOG=${VIDAR_INPUT}/maillog
 export NGINXLOG=${VIDAR_INPUT}/access.log
 
-
 export PSLOG=${VIDAR_INPUT}/ps.txt
 export NET4LOG=${VIDAR_INPUT}/net4.txt
 export NET6LOG=${VIDAR_INPUT}/net6.txt
 
+# The script utils/switch_input.sh can switch the
+# input sources from test to production.
+# so we use the variable VIDAR_INPUT to tell us
+# what is going on...
+#
+# See the above discussion on variable VIDAR_INPUT.
+# This variable shows whether Vidar gets its input from
+# production sources (/var/log/nginx/access, /var/log/maillog, etc.)
+# or from test input in VIDAR_INPUT.
+#
+if [    $(dirname ${AUTHLOG})  = "/var/log"  \
+     -a $(dirname ${EMAILLOG}) = "/var/log"  \
+     -a $(dirname ${NGINXLOG}) = "/var/log/nginx" ]
+then
+     export VIDAR_TEST="OFF"
+else
+     export VIDAR_TEST="ON"
+fi
+ 
+show_row() {
+    printf '%-47s %s\n' "$1" "$2"
+}
 
 # Print the environment only if explicitly asked to do so.
 #
 if [ "X${SHOW_ENV}" = "XY" ]
-then
-  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT}"
-  echo "VIDAR_HOME=     [${VIDAR_HOME}]"
-  echo "VIDAR_SEC=      [${VIDAR_SEC}]"
-  echo "VIDAR_SCRIPTS=  [${VIDAR_SCRIPTS}]"
-  echo "VIDAR_UTILS=    [${VIDAR_UTILS}]"
-  echo "VIDAR_PIDS=     [${VIDAR_PIDS}]"
-  echo "VIDAR_INPUT=    [${VIDAR_INPUT}]"
-  echo "VIDAR_TESTDATA= [${VIDAR_TESTDATA}]"
-  echo "VIDAR_ETC=      [${VIDAR_ETC}]"
-  echo "VIDAR_LIBEXEC=  [${VIDAR_LIBEXEC}]"
-  echo "DEBUGGING:"
-  echo "VIDAR_SEC_STDERR=     [${VIDAR_SEC_STDERR}]"
-  echo "VIDAR_READSEC_STDERR= [${VIDAR_READSEC_STDERR}]"
-  echo "VIDAR_ADD2BAD_STDERR= [${VIDAR_ADD2BAD_STDERR}]"
+then 
+  echo
+  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT} +++++ VIDAR TEST: ${VIDAR_TEST}"
+  echo "---------------------------------------------------------------------------------"
+  show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
+  show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
+  show_row "VIDAR_SEC=      [${VIDAR_SEC}]"
+  show_row "VIDAR_SCRIPTS=  [${VIDAR_SCRIPTS}]"
+  show_row "VIDAR_UTILS=    [${VIDAR_UTILS}]"
+  show_row "VIDAR_PIDS=     [${VIDAR_PIDS}]"
+  show_row "VIDAR_INPUT=    [${VIDAR_INPUT}]"
+  show_row "VIDAR_TESTDATA= [${VIDAR_TESTDATA}]"
+  show_row "VIDAR_ETC=      [${VIDAR_ETC}]"
+  show_row "VIDAR_LIBEXEC=  [${VIDAR_LIBEXEC}]"
+  show_row "DEBUGGING:" " "
+  show_row "VIDAR_SEC_STDERR=     [${VIDAR_SEC_STDERR}]"
+  show_row "VIDAR_READSEC_STDERR= [${VIDAR_READSEC_STDERR}]"
+  show_row "VIDAR_ADD2BAD_STDERR= [${VIDAR_ADD2BAD_STDERR}]"
 
-  echo "INPUTS:                                                 OUTPUTS:"
-  echo "AUTHLOG=  [${AUTHLOG}]            VIDAR_LOGS=[${VIDAR_LOGS}]"
-  echo "EMAILLOG= [${EMAILLOG}]"
-  echo "NGINXLOG= [${NGINXLOG}]              SEC Dump (Debug) Location:"
-  echo "PSLOG   = [${PSLOG}]              VIDAR_DUMP=[${VIDAR_DUMP}]"
-  echo "NET4LOG = [${NET4LOG}]"
-  echo "NET6LOG = [${NET6LOG}]"
- 
+  show_row "INPUTS:" "OUTPUTS:"
+  show_row "AUTHLOG=  [${AUTHLOG}]" "VIDAR_LOGS=[${VIDAR_LOGS}]"
+  show_row "EMAILLOG= [${EMAILLOG}]" "SEC Dump (Debug) Location:"
+  show_row "NGINXLOG= [${NGINXLOG}]"     "VIDAR_DUMP=[${VIDAR_DUMP}]"
+  show_row "PSLOG   = [${PSLOG}]" " "
+  show_row "NET4LOG = [${NET4LOG}]" " "
+  show_row "NET6LOG = [${NET6LOG}]" " "
 fi
-
+ 
