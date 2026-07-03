@@ -44,7 +44,7 @@ check_platform() {
 }
 
 check_required_commands() {
-    for cmd in install chown chmod pw psql service sudo; do
+    for cmd in install chown chmod pw psql service sudo visudo; do
         command -v "$cmd" >/dev/null 2>&1 || die "Missing required command: $cmd"
     done
 }
@@ -76,7 +76,7 @@ install_tree() {
     # VIDAR_DST is the intended location of the installed runtime code.
     # The intended layout is:
     #  $VIDAR_DST
-    #      |- etc/         - Vidar configuration files vidar_env.sh, vidar_dev.sh, and vidar_prod.sh
+    #      |- etc/         - Vidar configuration file vidar_env.sh
     #      |- input/       - Vidar test input location
     #      |- libexec/     - Vidar special scripts
     #      |- logs/        - Vidar runtime logs
@@ -87,45 +87,117 @@ install_tree() {
     #      |- testdata/    - Vidar files to use for testing
     #      |- utils/       - Vidar utilities to perform testing
 
+
+
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME"
-#    install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_HOME/src"
     install -d -o "$VIDAR_USER" -g "$VIDAR_GROUP" -m 0755 "$VIDAR_DST"
 
     info "Installing repository files"
 
-    # First pass: simple copy. We can refine this later with rsync, mtree, or explicit install rules.
+    # Copy steps: Copy, set default ownership, set root:wheel exceptions, set execute permissions
+    # tar option -p maintains the execute bits when extracting the archive.
     tar -C "$VIDAR_SRC" \
         --exclude .git \
         --exclude .gitignore \
-        --exclude .gitkeep \
         --exclude deprecated \
         --exclude vidar_install.sh \
-        -cf - . | tar -C "$VIDAR_DST" -xf -
+        -cf - . | tar -C "$VIDAR_DST" -xpf -
 
+#        --exclude .gitkeep \
+
+    # Set default ownership for all.
     chown -R "$VIDAR_USER:$VIDAR_GROUP" "$VIDAR_DST"
 
+    # Apply root:wheel  exceptions
+    chown root:wheel \
+        "${VIDAR_DST}/postgres/run_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/run_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar.sql" \
+        "${VIDAR_DST}/postgres/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/postgres/vidar_audit.pl" \
+        "${VIDAR_DST}/postgres/vidar_sweepIPFW.pl" \
+        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
+        "${VIDAR_DST}/scripts/vidar_stop.sh" \
+        "${VIDAR_DST}/utils/switch_input.sh" 
+
+    # Apply permissions for special cases.
+    chmod 0755  \
+        "${VIDAR_DST}/postgres/run_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/run_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/postgres/vidar_audit.pl" \
+        "${VIDAR_DST}/postgres/vidar_readSEC.pl" \
+        "${VIDAR_DST}/postgres/vidar_sweepIPFW.pl" \
+        "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
+        "${VIDAR_DST}/scripts/ipfw_up.sh" \
+        "${VIDAR_DST}/scripts/run_ipfw.sh" \
+        "${VIDAR_DST}/scripts/run_sec.sh" \
+        "${VIDAR_DST}/scripts/vidar_dumpBAD.sh" \
+        "${VIDAR_DST}/scripts/vidar_healthcheck.sh" \
+        "${VIDAR_DST}/scripts/vidar_importBAD.sh" \
+        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
+        "${VIDAR_DST}/scripts/vidar_stop.sh" \
+        "${VIDAR_DST}/sec/fixup_rules.sh" \
+        "${VIDAR_DST}/utils/push.sh" \
+        "${VIDAR_DST}/utils/randomip.pl" \
+        "${VIDAR_DST}/utils/regex_array_check.pl" \
+        "${VIDAR_DST}/utils/regex_check.pl" \
+        "${VIDAR_DST}/utils/switch_input.sh" \
+        "${VIDAR_DST}/utils/throt.pl" 
+
+    # One more special exception  - the helper file vidar_ipfw_delete.sh
+    # which should live in either the local libexec directory, when installed
+    # in dev mode or the system libexec/vidar directory when installed in prod mode. 
+    # Note that the sudoers.d/vidar entry has to track which location the
+    # installation takes.
+    # This function only installs the helper file.  See the function
+    # vidar_sudoers_setup() below for the sudoers setup.
+
+    info "Setting helper file vidar_ipfw_delete.sh in [${VIDAR_MODE}]."
+
+    case "${VIDAR_MODE}" in
+        dev)
+            # File is already in the vidar libexec directory.  Just change
+            # ownership and permissions
+            info "Fixing dev helper at [${VIDAR_DST}/libexec/vidar_ipfw_delete.sh]"
+            chown root:wheel "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh"
+            chmod 0755 "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh"
+            # Fix the libexec directory
+            chown root:wheel "${VIDAR_DST}/libexec"
+            chmod 0550 "${VIDAR_DST}/libexec"
+            ;;
+        prod)
+            # Install the helper file in /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+            info "Fixing prod helper at [/usr/local/libexec/vidar/vidar_ipfw_delete.sh]"
+            install -d -o root -g wheel -m 0755 /usr/local/libexec/vidar
+
+            install -o root -g wheel -m 0550 \
+               "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh" \
+               /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+              
+            rm -f "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh"
+            rm -f "${VIDAR_DST}/libexec/.gitkeep"
+            # Remove local libexec directory so there is no confusion.
+            rmdir "${VIDAR_DST}/libexec"
+
+
+            #mv "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh" /usr/local/libexec/vidar/
+            #chown root:wheel /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+            #chmod 0550 /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+            ;;
+        *)
+            warn "Incorrect parameter [${VIDAR_MODE}]"
+            usage
+            ;;
+    esac
 
 }
 
-fix_permissions() {
-    info "Fixing permissions"
-
-    find "$VIDAR_DST" -type d -exec chmod 0755 {} +
-    find "$VIDAR_DST" -type f -exec chmod 0644 {} +
-
-    # Executable scripts
-    find "$VIDAR_DST/scripts" "$VIDAR_DST/postgres" \
-        -type f \
-        \( -name "*.sh" -o -name "*.pl" \) \
-        -exec chmod 0755 {} + 2>/dev/null || true
-
-# excluded     [ -f "$VIDAR_DST/vidar_install.sh" ] && chmod 0755 "$VIDAR_DST/vidar_install.sh"
-}
 
 fix_runtime_environment() {
     info "Setting runtime environment in ${VIDAR_ETC}/vidar_env.sh"
     # Default to dev unless explicitly changed later.
-    ( cd ${VIDAR_ETC}
+    ( cd "${VIDAR_ETC}"
         # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
         # These have to be done inline so the variable values will transfer.
         cat vidar_env.sh.setup | \
@@ -134,6 +206,8 @@ fix_runtime_environment() {
                  > vidar_env.sh
 
       chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
+      chmod 0644 "$VIDAR_ETC/vidar_env.sh"
+      rm -f vidar_env.sh.setup
     )
 }
 
@@ -163,6 +237,11 @@ show_all_vars() {
 
 vidar_sudoers_setup() {
     info "Setting up vidar in /usr/local/etc/sudoers.d/vidar"
+    # Following the logic in setting up the helper script above,
+    # we want the sudoers.d/vidar entry to point to either
+    # the local libexec/vidar_ipfw_delete.sh for a dev install
+    # or to the /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+    # for a prod install.
 
     VIDAR_SUDOERSD=/usr/local/etc/sudoers.d        # The directory
     VIDAR_SUDOERSD_FILE="${VIDAR_SUDOERSD}/vidar"  # The file
@@ -178,15 +257,30 @@ vidar_sudoers_setup() {
 
     tmpfile="$(mktemp ./vidar_sudoers.XXXXXX)" || die "mktemp file in vidar_sudoers_setup()."
 
-    cat > "$tmpfile" <<EOF
-vidar ALL=(root) NOPASSWD: ${VIDAR_DST}/libexec/vidar_ipfw_delete.sh
+    case "${VIDAR_MODE}" in
+        dev)
+            info "Fixing dev sudoers.d entry."
+            cat > "$tmpfile" <<EOF
+vidar ALL=(root) NOPASSWD: ${VIDAR_DST}/libexec/vidar_ipfw_delete.sh *
 EOF
+            ;;
+        prod)
+            info "Fixing prod sudoers.d entry."
+            cat > "$tmpfile" <<EOF
+vidar ALL=(root) NOPASSWD: /usr/local/libexec/vidar/vidar_ipfw_delete.sh *
+EOF
+            ;;
+        *)
+            warn "Incorrect parameter [${VIDAR_MODE}] in sudoers.d fixup fuction."
+            usage
+            ;;
+    esac
 
     chown root:wheel "$tmpfile"
     chmod 0440 "$tmpfile"
     "$VISUDO" -c -f "$tmpfile" || {
         rm -f "$tmpfile"
-        die "sudoers validation failed in vidar_sudoers_setup()."
+        die "sudoers tmpfile validation failed in vidar_sudoers_setup()."
     }
     
     # Just replace any existing sudoers.d/vidar file
@@ -196,13 +290,19 @@ EOF
         mv "${VIDAR_SUDOERSD}/vidar" "${VIDAR_SUDOERSD}/vidar.OLD"
     fi
 
-    # Install what we need for dev or prod
+    # The same file is used for dev or prod.  It's the contents
+    # of the entry in the file that matter.
     install -o root -g wheel -m 0440 "$tmpfile" "$VIDAR_SUDOERSD_FILE"
+
+    info "Validating sudoers production file."
+    "$VISUDO" -c -f "$VIDAR_SUDOERSD_FILE" || {
+        warn "Sudoers production validation failed in vidar_sudoers_setup()."
+        warn "Suggest restoring ${VIDAR_SUDOERSD}/vidar.OLD to ${VIDAR_SUDOERSD}/vidar" 
+        die  "Check file manually with ${VISUDO} and try again."
+    }
     rm -f "$tmpfile"
 
-    # And set permissions on the helper file.
-     chown root:wheel "$VIDAR_DST/libexec/vidar_ipfw_delete.sh"
-     chmod 0550  "$VIDAR_DST/libexec/vidar_ipfw_delete.sh"
+    rm -f "${VIDAR_SUDOERSD}/vidar.OLD"
 }
 
 
@@ -242,16 +342,16 @@ main() {
     # case, so we have to find out if we actually are at the top
     # of the Vidar source tree.
 
-    # Set some initial variables.
+    # Set an initial variable.
     WHEREAMI=$(pwd)
     echo "Current directory is ${WHEREAMI}."
 
     # VIDAR_SRC is the top level of the Vidar source tree, typically /home/vidar/src/vidar
-    if [ -d ${WHEREAMI}/etc -a -d ${WHEREAMI}/input \
-         -a -d ${WHEREAMI}/libexec -a -d ${WHEREAMI}/postgres \
-         -a -d ${WHEREAMI}/scripts -a -d ${WHEREAMI}/sec \
-         -a -d ${WHEREAMI}/testdata -a -d ${WHEREAMI}/utils \
-         -a -d ${WHEREAMI}/.git ]
+    if [    -d "${WHEREAMI}/etc"      -a -d "${WHEREAMI}/input" \
+         -a -d "${WHEREAMI}/libexec"  -a -d "${WHEREAMI}/postgres" \
+         -a -d "${WHEREAMI}/scripts"  -a -d "${WHEREAMI}/sec" \
+         -a -d "${WHEREAMI}/testdata" -a -d "${WHEREAMI}/utils" \
+         -a -d "${WHEREAMI}/.git" ]
     then
     # Good chance we are in the source directory for Vidar.
       VIDAR_SRC=$(pwd)
@@ -263,7 +363,7 @@ main() {
        
     fi
 
-    # Need VIDAR_HOME to be the home directory of user vidar.
+    # VIDAR_HOME is the home directory of user vidar.
     VIDAR_HOME=/home/vidar
 
     # VIDAR_DST is the destination for a successful install.
@@ -273,7 +373,7 @@ main() {
 
     if [ "X${VIDAR_MODE}" = "Xdev" ]
     then
-        VIDAR_DST=${VIDAR_HOME}/dev   # Development
+        VIDAR_DST="${VIDAR_HOME}/dev"   # Development
     else
         VIDAR_DST=/usr/local/vidar    # Production
     fi
@@ -291,8 +391,6 @@ main() {
     ensure_vidar_user_and_group
 
     install_tree
-
-    fix_permissions
 
     fix_runtime_environment
 
