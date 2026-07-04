@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# vidar_env.sh - vidar environment variables.
+# vidar_env.sh.setup - vidar environment variables template.
 #
 #
 # VIDAR_ENVIRONMENT and VIDAR_HOME are set by the vidar_install.sh
@@ -18,6 +18,7 @@ export VIDAR_UTILS=${VIDAR_HOME}/utils
 export VIDAR_TESTDATA=${VIDAR_HOME}/testdata
 export VIDAR_ETC=${VIDAR_HOME}/etc
 export VIDAR_LIBEXEC=${VIDAR_HOME}/libexec
+export VIDAR_POSTGRES=${VIDAR_HOME}/postgres
 
 # Vidar output files
 # export VIDAR_LOGS=/var/log/vidar
@@ -95,6 +96,7 @@ then
   show_row "VIDAR_SEC=      [${VIDAR_SEC}]"
   show_row "VIDAR_SCRIPTS=  [${VIDAR_SCRIPTS}]"
   show_row "VIDAR_UTILS=    [${VIDAR_UTILS}]"
+  show_row "VIDAR_POSTGRES= [${VIDAR_POSTGRES}]"
   show_row "VIDAR_PIDS=     [${VIDAR_PIDS}]"
   show_row "VIDAR_INPUT=    [${VIDAR_INPUT}]"
   show_row "VIDAR_TESTDATA= [${VIDAR_TESTDATA}]"
