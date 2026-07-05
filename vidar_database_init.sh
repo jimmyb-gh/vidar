@@ -126,6 +126,7 @@ vidar_database_init() {
     if ! [ -z "${VIDAR_POSTGRES}" ]
     then
         echo "psql -U postgres -d postgres -f ${VIDAR_POSTGRES}/vidar.sql"
+        psql -U postgres -d postgres -f ${VIDAR_POSTGRES}/vidar.sql
     else
         die "VIDAR_POSTGRES not found!  Aborting..."
     fi
