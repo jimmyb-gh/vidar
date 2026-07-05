@@ -75,9 +75,9 @@ if [    $(dirname ${AUTHLOG})  = "/var/log"  \
      -a $(dirname ${EMAILLOG}) = "/var/log"  \
      -a $(dirname ${NGINXLOG}) = "/var/log/nginx" ]
 then
-     export VIDAR_TEST="OFF"
+     export VIDAR_TEST="PRODUCTION"
 else
-     export VIDAR_TEST="ON"
+     export VIDAR_TEST="TEST"
 fi
  
 show_row() {
@@ -89,7 +89,7 @@ show_row() {
 if [ "X${SHOW_ENV}" = "XY" ]
 then 
   echo
-  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT} +++++ VIDAR TEST INPUT: ${VIDAR_TEST}"
+  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT} +++++ VIDAR INPUT: ${VIDAR_TEST}"
   echo "---------------------------------------------------------------------------------"
   show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
   show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
