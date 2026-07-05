@@ -95,27 +95,31 @@ check_required_commands() {
     done
 }
 
-ensure_vidar_user_and_group() {
-    if ! pw groupshow "$VIDAR_GROUP" >/dev/null 2>&1; then
-        info "Creating group $VIDAR_GROUP"
-        pw groupadd "$VIDAR_GROUP"
-    else
-        info "Vidar group name [${VIDAR_GROUP}] already exists."
-    fi
-
-    if ! id "$VIDAR_USER" >/dev/null 2>&1; then
-        info "Creating user $VIDAR_USER"
-        pw useradd "$VIDAR_USER" \
-            -g "$VIDAR_GROUP" \
-            -m \
-            -c "Vidar Odinson" \
-            -d "$VIDAR_HOME" \
-            -s /bin/sh
-    else
-        info "Vidar password entry [${VIDAR_USER}] already exists."
-    fi
-}
-
+#  Vidar userid and group already exist.
+#  Created and installed by vidar_install.sh
+#  No need to do it again here.
+#
+#ensure_vidar_user_and_group() {
+#    if ! pw groupshow "$VIDAR_GROUP" >/dev/null 2>&1; then
+#        info "Creating group $VIDAR_GROUP"
+#        pw groupadd "$VIDAR_GROUP"
+#    else
+#        info "Vidar group name [${VIDAR_GROUP}] already exists."
+#    fi
+#
+#    if ! id "$VIDAR_USER" >/dev/null 2>&1; then
+#        info "Creating user $VIDAR_USER"
+#        pw useradd "$VIDAR_USER" \
+#            -g "$VIDAR_GROUP" \
+#            -m \
+#            -c "Vidar Odinson" \
+#            -d "$VIDAR_HOME" \
+#            -s /bin/sh
+#    else
+#        info "Vidar password entry [${VIDAR_USER}] already exists."
+#    fi
+#}
+#
 
 vidar_database_init() {
 
@@ -176,8 +180,8 @@ check_environment() {
                     # /some/top/of/tree
                     #
 
-                    if (helper ~ /\/libexec\/vidar\/vidar_ipfw_delete\.sh$/) {
-                        sub(/\/libexec\/vidar\/vidar_ipfw_delete\.sh$/, "", helper)
+                    if (helper ~ /\/libexec\/vidar_ipfw_delete\.sh$/) {
+                        sub(/\/libexec\/vidar_ipfw_delete\.sh$/, "", helper)
                         print helper
                         exit 0
                     }
@@ -225,14 +229,14 @@ main() {
 
     check_required_commands
 
-    ensure_vidar_user_and_group
-
 
     greetings
 
     read_yesno
 
     check_environment
+
+    # ensure_vidar_user_and_group
 
     vidar_database_init
 
