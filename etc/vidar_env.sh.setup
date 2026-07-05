@@ -89,7 +89,7 @@ show_row() {
 if [ "X${SHOW_ENV}" = "XY" ]
 then 
   echo
-  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT} +++++ VIDAR TEST: ${VIDAR_TEST}"
+  echo "VIDAR Environment: ${VIDAR_ENVIRONMENT} +++++ VIDAR TEST INPUT: ${VIDAR_TEST}"
   echo "---------------------------------------------------------------------------------"
   show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
   show_row "VIDAR_HOME=     [${VIDAR_HOME}]"
