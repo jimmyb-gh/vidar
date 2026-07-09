@@ -201,14 +201,26 @@ fix_runtime_environment() {
         # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
         # These have to be done inline so the variable values will transfer.
         cat vidar_env.sh.setup | \
-            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]" \
-                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]" \
+            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
+                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
                  > vidar_env.sh
 
       chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
       chmod 0644 "$VIDAR_ETC/vidar_env.sh"
       rm -f vidar_env.sh.setup
     )
+
+   ( cd "${VIDAR_SCRIPTS}"
+        # Set up the VIDAR_HOME variable.  These also have to be done inline.
+        for i in `ls -C1 *.setup`
+        do
+            OUTPUT=$(basename ${i} '.setup')
+            cat "${i}" | \
+            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g"  \
+            > ${OUTPUT}
+            info "Modified ${OUTPUT} for ${VIDAR_DST}"
+        done
+   )     
 }
 
 create_runtime_dirs() {
@@ -223,14 +235,15 @@ show_all_vars() {
 
     echo "The following environment variables will be used:"
     echo
-    echo "VIDAR_DB    =[${VIDAR_DB}]"
-    echo "VIDAR_DST   =[${VIDAR_DST}]"
-    echo "VIDAR_ETC   =[${VIDAR_ETC}]"
-    echo "VIDAR_GROUP =[${VIDAR_GROUP}]"
-    echo "VIDAR_HOME  =[${VIDAR_HOME}]"
-    echo "VIDAR_MODE  =[${VIDAR_MODE}]"
-    echo "VIDAR_SRC   =[${VIDAR_SRC}]"
-    echo "VIDAR_USER  =[${VIDAR_USER}]"
+    echo "VIDAR_DB       =[${VIDAR_DB}]"
+    echo "VIDAR_DST      =[${VIDAR_DST}]"
+    echo "VIDAR_ETC      =[${VIDAR_ETC}]"
+    echo "VIDAR_GROUP    =[${VIDAR_GROUP}]"
+    echo "VIDAR_HOME     =[${VIDAR_HOME}]"
+    echo "VIDAR_MODE     =[${VIDAR_MODE}]"
+    echo "VIDAR_SRC      =[${VIDAR_SRC}]"
+    echo "VIDAR_USER     =[${VIDAR_USER}]"
+    echo "VIDAR_SCRIPTS  =[${VIDAR_SCRIPTS}]"
     echo
 }
 
@@ -378,7 +391,9 @@ main() {
         VIDAR_DST=/usr/local/vidar    # Production
     fi
     
+    # We need these two vars right now.
     VIDAR_ETC="${VIDAR_DST}/etc"
+    VIDAR_SCRIPTS="${VIDAR_DST}/scripts"
 
     VIDAR_USER="vidar"
     VIDAR_GROUP="vidar"

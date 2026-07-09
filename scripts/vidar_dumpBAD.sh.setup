@@ -18,7 +18,7 @@ usage()
 # Pick up the production environment for this run, but don't print it out.
 
 SHOW_ENV="N"
-. /@@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh
+. @@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh
 
 
 ME=`id -unr`

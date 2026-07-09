@@ -1,1 +1,1 @@
-/usr/sbin/daemon -o /usr/local/vidar/logs/run_ipfw.log /bin/sh -c 'sleep 2; . /usr/local/vidar/etc/vidar_env.sh ; /usr/local/vidar/scripts/ipfw_up.sh'
+/usr/sbin/daemon -o /@@@VIDAR_HOMEDIR@@@/logs/run_ipfw.log /bin/sh -c 'sleep 2; . /@@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh ; /@@@VIDAR_HOMEDIR@@@/scripts/ipfw_up.sh'
