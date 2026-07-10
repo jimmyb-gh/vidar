@@ -60,15 +60,15 @@ cd ${VIDAR_HOME}/input
 
 
 # Send data via perl
-cat ${VIDAR_TESTDATA}/a.log   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/auth.log    &
+cat ${VIDAR_TESTDATA}/a.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/auth.log    &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 sleep 1
-cat ${VIDAR_TESTDATA}/m.log   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/maillog     &
+cat ${VIDAR_TESTDATA}/m.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/maillog     &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 sleep 1
-cat ${VIDAR_TESTDATA}/acc.log | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/access.log  &
+cat ${VIDAR_TESTDATA}/acc.testdata | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/access.log  &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 
