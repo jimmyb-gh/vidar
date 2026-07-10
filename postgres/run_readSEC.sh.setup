@@ -16,5 +16,5 @@ SHOW_ENV="N"
  
 
 
-exec perl "${VIDAR_HOME}/postgres/vidar_readSEC.pl"
+exec perl "${VIDAR_HOME}/postgres/vidar_readSEC.pl" $@
 
