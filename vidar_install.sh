@@ -195,33 +195,63 @@ install_tree() {
 
 
 fix_runtime_environment() {
-    info "Setting runtime environment in ${VIDAR_ETC}/vidar_env.sh"
+    info "Setting runtime environment in ${VIDAR_DST} tree."
     # Default to dev unless explicitly changed later.
-    ( cd "${VIDAR_ETC}"
-        # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
+    ( cd "${VIDAR_DST}"
+        mkdir setupfiles
+        # Find all setup files and make changes.
         # These have to be done inline so the variable values will transfer.
-        cat vidar_env.sh.setup | \
-            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
-                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
-                 > vidar_env.sh
-
-      chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
-      chmod 0644 "$VIDAR_ETC/vidar_env.sh"
-      rm -f vidar_env.sh.setup
-    )
-
-   ( cd "${VIDAR_SCRIPTS}"
-        # Set up the VIDAR_HOME variable.  These also have to be done inline.
-        for i in `ls -C1 *.setup`
-        do
-            OUTPUT=$(basename ${i} '.setup')
+        for i in `grep -RHl --include '*.setup'  '@@@VIDAR_HOMEDIR@@@' *` 
+        do 
+            BASEFILE=$(basename ${i} '.setup') 
+            BASEDIR=$(dirname ${i}) 
+            OUTFILE="${BASEDIR}/${BASEFILE}"
             cat "${i}" | \
-            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g"  \
-            > ${OUTPUT}
-            info "Modified ${OUTPUT} for ${VIDAR_DST}"
+                sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
+                    -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
+                     > "${OUTFILE}"
+            info "Modified ${OUTFILE} for ${VIDAR_DST}"
+            mv "${i}" setupfiles
+            info "Remove setupfiles/${i} after installation."
         done
-   )     
+
+      chown -h root:"${VIDAR_GROUP}" "$VIDAR_ETC/vidar_env.sh"
+      chmod 0644 "${VIDAR_ETC}/vidar_env.sh"
+    )
 }
+
+
+#fix_runtime_environment() {
+#    info "Setting runtime environment in ${VIDAR_ETC}/vidar_env.sh"
+#    # Default to dev unless explicitly changed later.
+#    ( cd "${VIDAR_ETC}"
+#        # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
+#        # These have to be done inline so the variable values will transfer.
+#        cat vidar_env.sh.setup | \
+#            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
+#                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
+#                 > vidar_env.sh
+#
+#      chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
+#      chmod 0644 "$VIDAR_ETC/vidar_env.sh"
+#      rm -f vidar_env.sh.setup
+#    )
+#
+#   ( cd "${VIDAR_SCRIPTS}"
+#        # Set up the VIDAR_HOME variable.  These also have to be done inline.
+#        for i in `ls -C1 *.setup`
+#        do
+#            OUTPUT=$(basename ${i} '.setup')
+#            cat "${i}" | \
+#            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g"  \
+#            > ${OUTPUT}
+#            info "Modified ${OUTPUT} for ${VIDAR_DST}"
+#        done
+#   )     
+#}
+#
+
+
 
 create_runtime_dirs() {
     info "Creating runtime directories"
