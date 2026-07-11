@@ -76,6 +76,15 @@ my $dbh = DBI->connect(
 
 print STDERR  "DBI->connect() succeeded!\n";
 
+# NOTES: The UPSERT clause in this SQL statement is complex.
+# It has to account for the situation where, after a permenent_blocked
+# offender_ip record is in the database and a second offense comes from the
+# same offender_ip (likely in the same SMTP session) which has lower
+# risk, the second event MUST NOT overwrite the block_seconds and
+# permanent_block fields of the first record.
+# The various UPSERT clauses below account for that possibility.
+
+
 # Prepared statement for offenders table using perl quoting.
 my $offenders_sth = $dbh->prepare(q{
      INSERT INTO offenders (offense_time,
@@ -112,13 +121,55 @@ my $offenders_sth = $dbh->prepare(q{
          entry           = EXCLUDED.entry,
          context         = EXCLUDED.context,
          rule_num        = EXCLUDED.rule_num,
-         permanent_block = EXCLUDED.permanent_block,
-         block_seconds   = EXCLUDED.block_seconds,
-         active_block    = EXCLUDED.active_block,
-         remove_after    = EXCLUDED.remove_after,
-         ipfw_removed_at = EXCLUDED.ipfw_removed_at,
          repeat_count    = offenders.repeat_count + 1,
-         evidence        = left (
+         /*
+         * A permanent block can be added, but it can never be
+         * downgraded by a later temporary-blocked event.
+         */
+         permanent_block = GREATEST(
+             offenders.permanent_block,
+             EXCLUDED.permanent_block
+         ),
+         /*
+         * Preserve the existing permanent_block value of block_seconds.
+         * If neither event is permanent, retain the longer
+         * block_seconds duration so a lower risk (weaker) event cannot
+         * shorten an existing block_seconds value.
+         */
+         block_seconds   = CASE
+             WHEN offenders.permanent_block = 1
+                 THEN offenders.block_seconds
+             WHEN EXCLUDED.permanent_block = 1
+                 THEN EXCLUDED.block_seconds
+             ELSE GREATEST(
+                 offenders.block_seconds,
+                 EXCLUDED.block_seconds
+                 )
+             END,
+         /*
+         * A permanent_blocked record removal time is irrelevant to
+         * the vidar_sweepIPFW.pl sweeper program, but we preserve it
+         * rather then replacing it with the newer event's removal time.
+         * For temporary blocks, retain the later expiration.
+         */
+         remove_after    = CASE
+             WHEN offenders.permanent_block = 1
+                 THEN offenders.remove_after
+             WHEN EXCLUDED.permanent_block = 1
+                 THEN EXCLUDED.remove_after
+             ELSE GREATEST(
+                 offenders.remove_after,
+                 EXCLUDED.remove_after
+                 )
+             END,
+         /*
+         * Always ensure the address is active in IPFW.
+         * Also, clear the ipfw_remove_after.
+         * See the constraint on this field.
+         */
+         active_block    = 1,
+         ipfw_removed_at = NULL,
+         evidence        = LEFT (
                               EXCLUDED.evidence
                               || E'\n--- previous evidence ---\n'
                               || offenders.evidence,
