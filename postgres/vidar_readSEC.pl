@@ -138,9 +138,8 @@ my $offenders_sth = $dbh->prepare(q{
          */
          block_seconds   = CASE
              WHEN offenders.permanent_block = 1
-                 THEN offenders.block_seconds
-             WHEN EXCLUDED.permanent_block = 1
-                 THEN EXCLUDED.block_seconds
+               OR EXCLUDED.permanent_block = 1
+                 THEN 0
              ELSE GREATEST(
                  offenders.block_seconds,
                  EXCLUDED.block_seconds
@@ -151,12 +150,12 @@ my $offenders_sth = $dbh->prepare(q{
          * the vidar_sweepIPFW.pl sweeper program, but we preserve it
          * rather then replacing it with the newer event's removal time.
          * For temporary blocks, retain the later expiration.
+         * The value 'inifinity'::timestamp is considered never removed.
          */
          remove_after    = CASE
              WHEN offenders.permanent_block = 1
-                 THEN offenders.remove_after
-             WHEN EXCLUDED.permanent_block = 1
-                 THEN EXCLUDED.remove_after
+               OR EXCLUDED.permanent_block = 1
+                 THEN 'infinity'::timestamp
              ELSE GREATEST(
                  offenders.remove_after,
                  EXCLUDED.remove_after
@@ -229,17 +228,20 @@ while (<STDIN>) {
 # DEBUGGING ONLY
     print STDERR "Inserting record into offenders table for rule [$rule]\n";
 
-    my $remove_after = compute_remove_after($time, $block_seconds);
-
-    eval {
     # Note that $block_seconds is actually a flag value:
     # if it is zero, it's a permanent block, if any other value it is not.
     # Therefore, the conditional below checks the flag value and assigns
     # 1 (true) if the incoming value is zero, or 0 (false) if not
     # to $permanent_block.
     # The values are set in every SEC rule write line.
+
     my $permanent_block = ($block_seconds == 0) ? 1 : 0;
-        
+
+    # my $remove_after = compute_remove_after($time, $block_seconds);
+    my $remove_after = $permanent_block == 1 ? 'infinity'
+        : compute_remove_after($time, $block_seconds);
+
+    eval {
         $offenders_sth->execute($time,
                                 $ip,
                                 $desc,
