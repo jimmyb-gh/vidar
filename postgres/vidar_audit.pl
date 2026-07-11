@@ -117,7 +117,7 @@ while ( $hash_ref = $sth->fetchrow_hashref ) {
 
     $db_hash{$ip_addr} = "P";  # Assign the hash keyed by the ip address the value "P".
 
-    print ".";
+    print STDERR ".";
 
 #    # Fractional throttle.
 #    select (undef, undef, undef, $throttle);
@@ -125,7 +125,7 @@ while ( $hash_ref = $sth->fetchrow_hashref ) {
    $dbcount++;
 }
 
-print "\nCount of database records: [$dbcount]\n\n";
+print STDERR "\nCount of database records: [$dbcount]\n\n";
 
 print STDERR "Closing DB connection\n\n";
 
@@ -137,21 +137,21 @@ $dbh->disconnect();
 # print out the db hash
 
 # DEBUGGING
-#print "Printing the db_hash\n";
+#print STDERR "Printing the db_hash\n";
 
 #foreach my $db_key (sort keys %db_hash) {
-#  print "dbkey [$db_key] : value $db_hash{$db_key}  ";
+#  print STDERR "dbkey [$db_key] : value $db_hash{$db_key}  ";
 #}
 
 my $ipfwcount = 0;
 
-print "Extracting the IPFW BAD table\n\n";
+print STDERR "Extracting the IPFW BAD table\n\n";
 # Now get the IPFW list
 my @ipfw_array = `/sbin/ipfw table BAD list`;
 
 my %ipfw_hash = ();
 
-print "Converting the IPFW BAD table to hash\n";
+print STDERR "Converting the IPFW BAD table to hash\n";
 
 my $ipfw_ipaddr = "";
 
@@ -159,20 +159,20 @@ foreach my $a  (@ipfw_array) {
   chomp $a;
   ($ipfw_ipaddr, my $junk) = split /\//,$a,2;
 #DEBUGGING
-  #print "ipfw_ipaddr: [$ipfw_ipaddr]  ";
+  #print STDERR "ipfw_ipaddr: [$ipfw_ipaddr]  ";
   $ipfw_hash{$ipfw_ipaddr} = "P";
-  print ".";
+  print STDERR ".";
   $ipfwcount++;
 }
 
-print "\nCount of IPFW records: [$ipfwcount]\n";
+print STDERR "\nCount of IPFW records: [$ipfwcount]\n";
 
 #DEBUGGING
 #foreach my $ipfw_key (sort keys %ipfw_hash) {
-#  print "ipfwkey [$ipfw_key] : value $ipfw_hash{$ipfw_key}  ";
+#  print STDERR "ipfwkey [$ipfw_key] : value $ipfw_hash{$ipfw_key}  ";
 #}
 
-print "\nComparing Database to IPFW:\n";
+print STDERR "\nComparing Database to IPFW:\n";
 
 foreach my $a (sort keys %db_hash) {
   my $db   = $db_hash{$a} ? $db_hash{$a} : "NoValue";
@@ -182,12 +182,13 @@ foreach my $a (sort keys %db_hash) {
     next;
   }
   else {
-    print "Database entry [$a] not found in IPFW table\n";
+    print STDERR "Database entry [$a] not found in IPFW table\n";
+    print "$a\n";
   }
 }
 
 
-print "\nComparing IPFW  to Database:\n\n";
+print STDERR "\nComparing IPFW  to Database:\n\n";
 
 foreach my $a (sort keys %ipfw_hash) {
   my $ipfw = $ipfw_hash{$a} ? $ipfw_hash{$a} : "NoValue";
@@ -197,10 +198,10 @@ foreach my $a (sort keys %ipfw_hash) {
     next;
   }
   else {
-    print "IPFW entry [$a] not found in DB table\n";
+    print STDERR "IPFW entry [$a] not found in DB table\n";
   }
 
 }
-print "End of Program\n";
+print STDERR "End of Program\n";
 
 
