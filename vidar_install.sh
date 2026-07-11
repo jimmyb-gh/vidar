@@ -218,39 +218,28 @@ fix_runtime_environment() {
       chown -h root:"${VIDAR_GROUP}" "$VIDAR_ETC/vidar_env.sh"
       chmod 0644 "${VIDAR_ETC}/vidar_env.sh"
     )
+
+    # If production (VIDAR_ENVIRONMENT=PRODUCTION), then
+    # set the three main input logs to production locations.
+    # This time, edit the files in place (-i extension)  with extension ".bak"
+    # and delete the backup files if the command succeeds.
+    if [ "X${VIDAR_ENVIRONMENT}" = "XPRODUCTION" ]
+    then
+        ( cd "${VIDAR_DST}/etc" || die "Can't find VIDAR_DST/etc."
+            if sed -i .bak \
+              -e 's|^export AUTHLOG=${VIDAR_INPUT}/auth\.log$|export AUTHLOG=/var/log/auth.log|' \
+              -e 's|^export EMAILLOG=${VIDAR_INPUT}/maillog$|export EMAILLOG=/var/log/maillog|' \
+              -e 's|^export NGINXLOG=${VIDAR_INPUT}/access\.log$|export NGINXLOG=/var/log/nginx/access.log|' \
+                vidar_env.sh
+            then
+                rm vidar_env.sh.bak
+                info "Modified vidar_env.sh for production locations."
+            else
+                info "ERROR Modifying  vidar_env.sh for production locations."
+            fi
+        )
+    fi
 }
-
-
-#fix_runtime_environment() {
-#    info "Setting runtime environment in ${VIDAR_ETC}/vidar_env.sh"
-#    # Default to dev unless explicitly changed later.
-#    ( cd "${VIDAR_ETC}"
-#        # Set up the VIDAR_HOME and VIDAR_ENVIRONMENT variables.
-#        # These have to be done inline so the variable values will transfer.
-#        cat vidar_env.sh.setup | \
-#            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
-#                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
-#                 > vidar_env.sh
-#
-#      chown -h root:"$VIDAR_GROUP" "$VIDAR_ETC/vidar_env.sh"
-#      chmod 0644 "$VIDAR_ETC/vidar_env.sh"
-#      rm -f vidar_env.sh.setup
-#    )
-#
-#   ( cd "${VIDAR_SCRIPTS}"
-#        # Set up the VIDAR_HOME variable.  These also have to be done inline.
-#        for i in `ls -C1 *.setup`
-#        do
-#            OUTPUT=$(basename ${i} '.setup')
-#            cat "${i}" | \
-#            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g"  \
-#            > ${OUTPUT}
-#            info "Modified ${OUTPUT} for ${VIDAR_DST}"
-#        done
-#   )     
-#}
-#
-
 
 
 create_runtime_dirs() {
