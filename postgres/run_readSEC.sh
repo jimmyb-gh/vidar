@@ -11,5 +11,5 @@
 
 . /usr/local/vidar/etc/vidar_env.sh
 
-exec perl "${VIDAR_HOME}/postgres/vidar_readSEC.pl"
+exec perl "${VIDAR_HOME}/perl/vidar_readSEC.pl"
 
