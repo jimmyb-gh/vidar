@@ -59,10 +59,10 @@ As written, all the code lives in ~/src/vidar.
 
 You will need these FreeBSD packages (minimum versions shown):
 
-- postgresql17-client     PostgreSQL database (client)
-- postgresql17-server     PostgreSQL is the most advanced open-source database available anywhere
-- sec-2.9.N               Simple event (logs) correlator
-- perl5-5.42.N            Practical Extraction and Report Language
+- postgresql18-client     PostgreSQL database (client)
+- postgresql18-server     PostgreSQL is the most advanced open-source database available anywhere
+- sec-2.9                 Simple event (logs) correlator
+- perl5-5.42              Practical Extraction and Report Language
 
 Install PostgreSQL create a user with administrator privileges.
 
