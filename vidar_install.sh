@@ -113,9 +113,11 @@ install_tree() {
         "${VIDAR_DST}/postgres/run_add2BAD.sh" \
         "${VIDAR_DST}/postgres/run_readSEC.sh" \
         "${VIDAR_DST}/postgres/vidar.sql" \
-        "${VIDAR_DST}/postgres/vidar_add2BAD.pl" \
-        "${VIDAR_DST}/postgres/vidar_audit.pl" \
-        "${VIDAR_DST}/postgres/vidar_sweepIPFW.pl" \
+        "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/perl/vidar_audit.pl" \
+        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
+        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
+        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" \
         "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
         "${VIDAR_DST}/scripts/vidar_stop.sh" \
         "${VIDAR_DST}/utils/switch_input.sh" 
@@ -124,10 +126,16 @@ install_tree() {
     chmod 0755  \
         "${VIDAR_DST}/postgres/run_add2BAD.sh" \
         "${VIDAR_DST}/postgres/run_readSEC.sh" \
-        "${VIDAR_DST}/postgres/vidar_add2BAD.pl" \
-        "${VIDAR_DST}/postgres/vidar_audit.pl" \
-        "${VIDAR_DST}/postgres/vidar_readSEC.pl" \
-        "${VIDAR_DST}/postgres/vidar_sweepIPFW.pl" \
+        "${VIDAR_DST}/postgres/vidar_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/vidar_audit.sh" \
+        "${VIDAR_DST}/postgres/vidar_connectiontest.sh" \
+        "${VIDAR_DST}/postgres/vidar_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar_sweepIPFW.sh" \
+        "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/perl/vidar_audit.pl" \
+        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
+        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
+        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" \
         "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
         "${VIDAR_DST}/scripts/ipfw_up.sh" \
         "${VIDAR_DST}/scripts/run_ipfw.sh" \
