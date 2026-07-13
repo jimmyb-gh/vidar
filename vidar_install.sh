@@ -106,56 +106,7 @@ install_tree() {
 #        --exclude .gitkeep \
 
     # Set default ownership for all.
-    chown -R "$VIDAR_USER:$VIDAR_GROUP" "$VIDAR_DST"
-
-    # Apply root:wheel  exceptions
-    chown root:wheel \
-        "${VIDAR_DST}/postgres/run_add2BAD.sh" \
-        "${VIDAR_DST}/postgres/run_readSEC.sh" \
-        "${VIDAR_DST}/postgres/vidar.sql" \
-        "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
-        "${VIDAR_DST}/perl/vidar_audit.pl" \
-        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
-        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
-        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" \
-        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
-        "${VIDAR_DST}/scripts/vidar_stop.sh" \
-        "${VIDAR_DST}/utils/switch_input.sh" 
-
-    # Apply permissions for special cases.
-    chmod 0755  "${VIDAR_DST}/postgres/run_add2BAD.sh" \
-        "${VIDAR_DST}/postgres/run_readSEC.sh" \
-        "${VIDAR_DST}/postgres/vidar_add2BAD.sh" \
-        "${VIDAR_DST}/postgres/vidar_audit.sh" \
-        "${VIDAR_DST}/postgres/vidar_connectiontest.sh" \
-        "${VIDAR_DST}/postgres/vidar_readSEC.sh" \
-        "${VIDAR_DST}/postgres/vidar_sweepIPFW.sh" 
-
-    chmod 0755  "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
-        "${VIDAR_DST}/perl/vidar_audit.pl" \
-        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
-        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
-        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" 
-
-    chmod 0755  "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
-        "${VIDAR_DST}/scripts/ipfw_up.sh" \
-        "${VIDAR_DST}/scripts/run_ipfw.sh" \
-        "${VIDAR_DST}/scripts/run_sec.sh" \
-        "${VIDAR_DST}/scripts/vidar_dumpBAD.sh" \
-        "${VIDAR_DST}/scripts/vidar_healthcheck.sh" \
-        "${VIDAR_DST}/scripts/vidar_importBAD.sh" \
-        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
-        "${VIDAR_DST}/scripts/vidar_stop.sh" 
-
-    chmod 0755  "${VIDAR_DST}/sec/fixup_rules.sh" 
-
-    chmod 0755  "${VIDAR_DST}/utils/push.sh" \
-        "${VIDAR_DST}/utils/randomip.pl" \
-        "${VIDAR_DST}/utils/regex_array_check.pl" \
-        "${VIDAR_DST}/utils/regex_check.pl" \
-        "${VIDAR_DST}/utils/switch_input.sh" \
-        "${VIDAR_DST}/utils/throt.pl" 
-
+    chown -R "$VIDAR_USER:$VIDAR_GROUP" "${VIDAR_DST}"
 
     # One more special exception  - the helper file vidar_ipfw_delete.sh
     # which should live in either the local libexec directory, when installed
@@ -223,7 +174,6 @@ fix_runtime_environment() {
                 "${i}" > "${OUTFILE}"
             info "Modified ${OUTFILE} for ${VIDAR_DST}"
             mv "${i}" setupfiles
-            info "Remove setupfiles/${i} after installation."
         done
 
       chown -h root:"${VIDAR_GROUP}" "$VIDAR_ETC/vidar_env.sh"
@@ -250,6 +200,66 @@ fix_runtime_environment() {
             fi
         )
     fi
+
+    info "Remove setupfiles/* after installation."
+
+# Do all chmods here since now all files actually exist.
+
+    info "Applying all chowns in ${VIDAR_DST}/postgres, perl, scripts, and utils."
+
+    # Apply root:wheel  exceptions
+    chown root:wheel \
+        "${VIDAR_DST}/postgres/run_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/run_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar.sql" \
+        "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/perl/vidar_audit.pl" \
+        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
+        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
+        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" \
+        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
+        "${VIDAR_DST}/scripts/vidar_stop.sh" \
+        "${VIDAR_DST}/utils/switch_input.sh"
+
+    info "Applying all chmods in ${VIDAR_DST}/postgres."
+    # Apply permissions for special cases.
+    chmod 0755  "${VIDAR_DST}/postgres/run_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/run_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar_add2BAD.sh" \
+        "${VIDAR_DST}/postgres/vidar_audit.sh" \
+        "${VIDAR_DST}/postgres/vidar_connectiontest.sh" \
+        "${VIDAR_DST}/postgres/vidar_readSEC.sh" \
+        "${VIDAR_DST}/postgres/vidar_sweepIPFW.sh"
+
+    info "Applying all chmods in ${VIDAR_DST}/perl."
+    chmod 0755  "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/perl/vidar_audit.pl" \
+        "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
+        "${VIDAR_DST}/perl/vidar_readSEC.pl" \
+        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl"
+
+    info "Applying all chmods in ${VIDAR_DST}/scripts."
+    chmod 0755  "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
+        "${VIDAR_DST}/scripts/ipfw_up.sh" \
+        "${VIDAR_DST}/scripts/run_ipfw.sh" \
+        "${VIDAR_DST}/scripts/run_sec.sh" \
+        "${VIDAR_DST}/scripts/vidar_dumpBAD.sh" \
+        "${VIDAR_DST}/scripts/vidar_healthcheck.sh" \
+        "${VIDAR_DST}/scripts/vidar_importBAD.sh" \
+        "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
+        "${VIDAR_DST}/scripts/vidar_stop.sh"
+
+    info "Applying all chmods in ${VIDAR_DST}/sec."
+    chmod 0755  "${VIDAR_DST}/sec/fixup_rules.sh"
+
+    info "Applying all chmods in ${VIDAR_DST}/utils."
+    chmod 0755  "${VIDAR_DST}/utils/push.sh" \
+        "${VIDAR_DST}/utils/randomip.pl" \
+        "${VIDAR_DST}/utils/regex_array_check.pl" \
+        "${VIDAR_DST}/utils/regex_check.pl" \
+        "${VIDAR_DST}/utils/switch_input.sh" \
+        "${VIDAR_DST}/utils/throt.pl"
+
 }
 
 
