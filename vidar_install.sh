@@ -123,20 +123,21 @@ install_tree() {
         "${VIDAR_DST}/utils/switch_input.sh" 
 
     # Apply permissions for special cases.
-    chmod 0755  \
-        "${VIDAR_DST}/postgres/run_add2BAD.sh" \
+    chmod 0755  "${VIDAR_DST}/postgres/run_add2BAD.sh" \
         "${VIDAR_DST}/postgres/run_readSEC.sh" \
         "${VIDAR_DST}/postgres/vidar_add2BAD.sh" \
         "${VIDAR_DST}/postgres/vidar_audit.sh" \
         "${VIDAR_DST}/postgres/vidar_connectiontest.sh" \
         "${VIDAR_DST}/postgres/vidar_readSEC.sh" \
-        "${VIDAR_DST}/postgres/vidar_sweepIPFW.sh" \
-        "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
+        "${VIDAR_DST}/postgres/vidar_sweepIPFW.sh" 
+
+    chmod 0755  "${VIDAR_DST}/perl/vidar_add2BAD.pl" \
         "${VIDAR_DST}/perl/vidar_audit.pl" \
         "${VIDAR_DST}/perl/vidar_connectiontest.pl" \
         "${VIDAR_DST}/perl/vidar_readSEC.pl" \
-        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" \
-        "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
+        "${VIDAR_DST}/perl/vidar_sweepIPFW.pl" 
+
+    chmod 0755  "${VIDAR_DST}/scripts/ipfw_good_table.sh" \
         "${VIDAR_DST}/scripts/ipfw_up.sh" \
         "${VIDAR_DST}/scripts/run_ipfw.sh" \
         "${VIDAR_DST}/scripts/run_sec.sh" \
@@ -144,14 +145,17 @@ install_tree() {
         "${VIDAR_DST}/scripts/vidar_healthcheck.sh" \
         "${VIDAR_DST}/scripts/vidar_importBAD.sh" \
         "${VIDAR_DST}/scripts/vidar_start_postgres.sh" \
-        "${VIDAR_DST}/scripts/vidar_stop.sh" \
-        "${VIDAR_DST}/sec/fixup_rules.sh" \
-        "${VIDAR_DST}/utils/push.sh" \
+        "${VIDAR_DST}/scripts/vidar_stop.sh" 
+
+    chmod 0755  "${VIDAR_DST}/sec/fixup_rules.sh" 
+
+    chmod 0755  "${VIDAR_DST}/utils/push.sh" \
         "${VIDAR_DST}/utils/randomip.pl" \
         "${VIDAR_DST}/utils/regex_array_check.pl" \
         "${VIDAR_DST}/utils/regex_check.pl" \
         "${VIDAR_DST}/utils/switch_input.sh" \
         "${VIDAR_DST}/utils/throt.pl" 
+
 
     # One more special exception  - the helper file vidar_ipfw_delete.sh
     # which should live in either the local libexec directory, when installed
@@ -209,15 +213,14 @@ fix_runtime_environment() {
         mkdir setupfiles
         # Find all setup files and make changes.
         # These have to be done inline so the variable values will transfer.
-        for i in `grep -RHl --include '*.setup'  '@@@VIDAR_HOMEDIR@@@' *` 
+        for i in `grep -Rl --include='*.setup' --exclude-dir='setupfiles' '@@@VIDAR_HOMEDIR@@@' .` 
         do 
             BASEFILE=$(basename ${i} '.setup') 
             BASEDIR=$(dirname ${i}) 
             OUTFILE="${BASEDIR}/${BASEFILE}"
-            cat "${i}" | \
-                sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
-                    -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
-                     > "${OUTFILE}"
+            sed -e "s]@@@VIDAR_HOMEDIR@@@]${VIDAR_DST}]g" \
+                -e "s]@@@VIDAR_ENVIRONMENT_TAG@@@]${VIDAR_ENVIRONMENT}]g" \
+                "${i}" > "${OUTFILE}"
             info "Modified ${OUTFILE} for ${VIDAR_DST}"
             mv "${i}" setupfiles
             info "Remove setupfiles/${i} after installation."
