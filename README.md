@@ -61,7 +61,7 @@ at about 900 to 1000 messages per second.
 Below are some installation notes.
 
 ```shell
-\# login as root
+# login as root
 
 pkg install postgresql18-client
 pkg install postgresql18-server
@@ -81,19 +81,19 @@ sysrc postgresql_enable=YES
 service postgresql initdb
 service postgresql start
 
-\# Check postgres & connectivity, exit with \q
+# Check postgres & connectivity, exit with \q
 psql -U postgres postgres
 
-\# Login as root and 
-\# put _your_name_ into /usr/local/etc/sudoers
-\# or just enable this line if you are in wheel group:
+# Login as root and 
+# put _your_name_ into /usr/local/etc/sudoers
+# or just enable this line if you are in wheel group:
 
-\#\# Same thing without a password
-\# %wheel ALL=(ALL:ALL) NOPASSWD: ALL
+## Same thing without a password
+# %wheel ALL=(ALL:ALL) NOPASSWD: ALL
  
 adduser vidar
 
-\# Login as _your_name_  from another terminal session
+# Login as _your_name_  from another terminal session
 
 cd $HOME
 
@@ -101,55 +101,55 @@ mkdir src && cd src
 
 git clone https://github.com/jimmyb-gh/vidar.git
 
-\# As user _your_name_
+# As user _your_name_
 cd ~/src/vidar
 
-\# Install vidar code in dev mode into /home/vidar/dev
+# Install vidar code in dev mode into /home/vidar/dev
 sudo /bin/sh vidar_install.sh  dev
 
-\# Check that code is in /home/vidar/dev
+# Check that code is in /home/vidar/dev
 
-\# Then install the database
+# Then install the database
 sudo ./vidar_database_init.sh
 
-\# Answer yes to scary warning
+# Answer yes to scary warning
 
-\# Check /var/db/postgres/data18/pg_hba.conf
+# Check /var/db/postgres/data18/pg_hba.conf
 
-\# Apply vidar as peer authentication at end of  /var/db/postgres/data18/pg_hba.conf :
+# Apply vidar as peer authentication at end of  /var/db/postgres/data18/pg_hba.conf :
 
-\# TYPE  DATABASE        USER            ADDRESS                 METHOD
-\# local modifications for vidar
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+# local modifications for vidar
 local       vidar           vidar                                   peer
 
-\# Leave the rest of file is unchanged.
-\# You MUST restart postgresql after this change:
+# Leave the rest of file is unchanged.
+# You MUST restart postgresql after this change:
 service postgresql restart
 
-\# Login or su to user vidar
+# Login or su to user vidar
 
 cd /home/vidar/dev/etc
 
-\#      # source the vidar_envs.sh file
-\#      #SHOW_ENV="Y"
-\#      #. ./vidar_env.sh
+#      # source the vidar_envs.sh file
+#      #SHOW_ENV="Y"
+#      #. ./vidar_env.sh
 
-\# Check over the environment variables.
-\# In particular, for a first time install,
-\# the AUTHLOG, EMAILLOG, and NGINXLOG entries
-\# should all be in /home/vidar/dev/input/
-\#
+# Check over the environment variables.
+# In particular, for a first time install,
+# the AUTHLOG, EMAILLOG, and NGINXLOG entries
+# should all be in /home/vidar/dev/input/
+#
 
-\# As vidar, cd to ~/dev/postgres and run
+# As vidar, cd to ~/dev/postgres and run
 sh vidar_connectiontest.sh
 
-\# DBI connection should succeed.
+# DBI connection should succeed.
 
-\# Vidar is READY TO GO
+# Vidar is READY TO GO
 
-\# Logout as vidar, login as root
+# Logout as vidar, login as root
 
-\# Source the environment
+# Source the environment
 SHOW_ENV="Y"
 . /home/vidar/dev/etc/vidar_env.sh
 
@@ -157,98 +157,98 @@ cd ../scripts
 
 ./vidar_start_postgres.sh
 
-\# ... Vidar starts here ...
+# ... Vidar starts here ...
 
-\# Should succeed. if not diagnose why.
-\# OOB login may be needed :-(
+# Should succeed. if not diagnose why.
+# OOB login may be needed :-(
 
-\# -----  Testing with test input  ------
+# -----  Testing with test input  ------
 
-\# As root or install user
+# As root or install user
 
 cd /home/vidar/dev/utils
 
 sudo /bin/sh push.sh 0.05   # or just push.sh 0.05,  use 0.1 if needed
 
-\# Then tail -f /home/vidar/dev/logs/readSEC_stderr.txt
-\# or /home/vidar/dev/logs/add2BAD_stderr.txt
+# Then tail -f /home/vidar/dev/logs/readSEC_stderr.txt
+# or /home/vidar/dev/logs/add2BAD_stderr.txt
 
-\# In another session as root:
+# In another session as root:
 
 ipfw table BAD list
 
-\# and
+# and
 
 ipfw table BAD list | wc
 
-\# Then
+# Then
 
 sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
 
-\# Watch IPFW table BAD fill count and postgresql offenders table fill count.
-\# These two lines have to be executed close in time (use up arrow to replay)
-\#  sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
-\#  count 
-\# -------
-\#    947
-\# (1 row)
-\# 
-\# ipfw table BAD list | wc
-\#      947    1894   18793
-\# 
-\# 
-\# 
-\# Try some queries from PostgreSQL
+# Watch IPFW table BAD fill count and postgresql offenders table fill count.
+# These two lines have to be executed close in time (use up arrow to replay)
+#  sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
+#  count 
+# -------
+#    947
+# (1 row)
+# 
+# ipfw table BAD list | wc
+#      947    1894   18793
+# 
+# 
+# 
+# Try some queries from PostgreSQL
 
-\# Get count of permanent_block entries
-\# Should be at least one, but more will show eventually
+# Get count of permanent_block entries
+# Should be at least one, but more will show eventually
 sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders where permanent_block = 1;"  
 
-\# Get list of offenders targeted for removal at listed time
+# Get list of offenders targeted for removal at listed time
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by context, desc_line asc;"
 
 
-\# Same thing ordered by remove_after ascending (closest to removal first)
+# Same thing ordered by remove_after ascending (closest to removal first)
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by remove_after asc;"
 
-\# Get list of offenders with the most serious offenses in descending order.  This is determined by block_seconds.
+# Get list of offenders with the most serious offenses in descending order.  This is determined by block_seconds.
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, block_seconds  from offenders order by block_seconds desc;"
 
 
-There are some debugging statements that write to STDERR in both ~/src/vidar/scripts/readSEC.pl and ~src/vidar/scripts/add2BAD.pl.
-These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
-See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
+#There are some debugging statements that write to STDERR in both ~/src/vidar/scripts/readSEC.pl and ~src/vidar/scripts/add2BAD.pl.
+#These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
+#See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
 
-\# TESTING
+# TESTING
 
-To test, change the link in ~src/vidar/etc/vidar_env.sh  to point to vidar_dev.sh
-and comment the following lines (production use):
+#To test, change the link in ~src/vidar/etc/vidar_env.sh  to point to vidar_dev.sh
+#and comment the following lines (production use):
 
-- AUTHLOG=/var/log/auth.log
-- EMAILLOG=/var/log/maillog
-- NGINXLOG=/var/log/nginx/access.log
+# - AUTHLOG=/var/log/auth.log
+# - EMAILLOG=/var/log/maillog
+# - NGINXLOG=/var/log/nginx/access.log
 
-Then uncomment out these lines to use the included test data:
+# Then uncomment out these lines to use the included test data:
 
-- AUTHLOG=${VIDAR_INPUT}/auth.log
-- EMAILLOG=${VIDAR_INPUT}/maillog
-- NGINXLOG=${VIDAR_INPUT}/access.log
+# - AUTHLOG=${VIDAR_INPUT}/auth.log
+# - EMAILLOG=${VIDAR_INPUT}/maillog
+# - NGINXLOG=${VIDAR_INPUT}/access.log
 
-Start up Vidar with:
+# Start up Vidar with:
   ~/src/vidar/postgres/vidar_start_postgres.sh
 
-Then run
+# Then run
   /bin/sh ~/src/vidar/utils/push.sh .1
 
-This sends 10 lines per second through the Vidar system.
-Navigate to the logs directory (~/src/vidar/logs) and watch the files:
+# This sends 10 lines per second through the Vidar system.
+# Navigate to the logs directory (~/src/vidar/logs) and watch the files:
 
-- tail -f readSEC_stderr.txt
-- tail -f add2BAD_stderr.txt
+# - tail -f readSEC_stderr.txt
+# - tail -f add2BAD_stderr.txt
  
-And check the IPFW firewall
+# And check the IPFW firewall
 
-- As root, ipfw table BAD list  (or ipfw table BAD list | wc)
+# - As root, ipfw table BAD list  (or ipfw table BAD list | wc)
 ```
 
 ## Feedback Welcome!
