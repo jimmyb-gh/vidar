@@ -55,47 +55,167 @@ in the ~/src/vidar/utils directory.  The code was able to keep up
 with 3 different input streams (auth.log, nginx/access.log, and maillog)
 at about 900 to 1000 messages per second.
 
-As written, all the code lives in ~/src/vidar.  
+## Installation Notes
+Below are some installation notes.
 
-You will need these FreeBSD packages (minimum versions shown):
 
-- postgresql18-client     PostgreSQL database (client)
-- postgresql18-server     PostgreSQL is the most advanced open-source database available anywhere
-- sec-2.9                 Simple event (logs) correlator
-- perl5-5.42              Practical Extraction and Report Language
+\# login as root
 
-Install PostgreSQL create a user with administrator privileges.
+pkg install postgresql18-client
+pkg install postgresql18-server
+pkg install perl5
+pkg install sec
+pkg install git
+pkg install p5-DBD-Pg
+pkg install p5-DBI
+pkg install sudo
+pkg install pstree
 
-Have that user just run ~src/vidar/postgres/vidar.sql which creates the roles, tables, and authorizations needed.
+pkg install -yU postgresql18-client postgresql18-server perl5 sec
+pkg install -yU git p5-DBD-Pg p5-DBI sudo pstree
 
-Install SEC.  The rules for postfix, nginx, and FreeBSD authentication are
-already installed, but can be added to at your discretion.
+sysrc postgresql_enable=YES
 
-The file *~/src/vidar/scripts/vidar_start_postgres.sh* starts everything up.  There are some
-pauses in the scripts to let things (i.e. IPFW) settle.  The script uses daemon(8)
-so it is unlikely you will get locked out, but it is wise to have OOB access.
+service postgresql initdb
+service postgresql start
+
+\# Check postgres & connectivity, exit with \q
+psql -U postgres postgres
+
+\# Login as root and 
+\# put _your_name_ into /usr/local/etc/sudoers
+\# or just enable this line if you are in wheel group:
+
+\#\# Same thing without a password
+\# %wheel ALL=(ALL:ALL) NOPASSWD: ALL
+ 
+adduser vidar
+
+\# Login as _your_name_  from another terminal session
+
+cd $HOME
+
+mkdir src && cd src
+
+git clone https://github.com/jimmyb-gh/vidar.git
+
+\# As user _your_name_
+cd ~/src/vidar
+
+\# Install vidar code in dev mode into /home/vidar/dev
+sudo /bin/sh vidar_install.sh  dev
+
+\# Check that code is in /home/vidar/dev
+
+\# Then install the database
+sudo ./vidar_database_init.sh
+
+\# Answer yes to scary warning
+
+\# Check /var/db/postgres/data18/pg_hba.conf
+
+\# Apply vidar as peer authentication at end of  /var/db/postgres/data18/pg_hba.conf :
+
+\# TYPE  DATABASE        USER            ADDRESS                 METHOD
+\# local modifications for vidar
+local       vidar           vidar                                   peer
+
+\# Leave the rest of file is unchanged.
+\# You MUST restart postgresql after this change:
+service postgresql restart
+
+\# Login or su to user vidar
+
+cd /home/vidar/dev/etc
+
+\#      # source the vidar_envs.sh file
+\#      #SHOW_ENV="Y"
+\#      #. ./vidar_env.sh
+
+\# Check over the environment variables.
+\# In particular, for a first time install,
+\# the AUTHLOG, EMAILLOG, and NGINXLOG entries
+\# should all be in /home/vidar/dev/input/
+\#
+
+\# As vidar, cd to ~/dev/postgres and run
+sh vidar_connectiontest.sh
+
+\# DBI connection should succeed.
+
+\# Vidar is READY TO GO
+
+\# Logout as vidar, login as root
+
+\# Source the environment
+SHOW_ENV="Y"
+. /home/vidar/dev/etc/vidar_env.sh
+
+cd ../scripts
+
+./vidar_start_postgres.sh
+
+\# ... Vidar starts here ...
+
+\# Should succeed. if not diagnose why.
+\# OOB login may be needed :-(
+
+\# -----  Testing with test input  ------
+
+\# As root or install user
+
+cd /home/vidar/dev/utils
+
+sudo /bin/sh push.sh 0.05   # or just push.sh 0.05,  use 0.1 if needed
+
+\# Then tail -f /home/vidar/dev/logs/readSEC_stderr.txt
+\# or /home/vidar/dev/logs/add2BAD_stderr.txt
+
+\# In another session as root:
+
+ipfw table BAD list
+
+\# and
+
+ipfw table BAD list | wc
+
+\# Then
+
+sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
+
+\# Watch IPFW table BAD fill count and postgresql offenders table fill count.
+\# These two lines have to be executed close in time (use up arrow to replay)
+\#  sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
+\#  count 
+\# -------
+\#    947
+\# (1 row)
+\# 
+\# ipfw table BAD list | wc
+\#      947    1894   18793
+\# 
+\# 
+\# 
+\# Try some queries from PostgreSQL
+
+\# Get count of permanent_block entries
+\# Should be at least one, but more will show eventually
+sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders where permanent_block = 1;"  
+
+\# Get list of offenders targeted for removal at listed time
+sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by context, desc_line asc;"
+
+
+\# Same thing ordered by remove_after ascending (closest to removal first)
+sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by remove_after asc;"
+
+\# Get list of offenders with the most serious offenses in descending order.  This is determined by block_seconds.
+sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, block_seconds  from offenders order by block_seconds desc;"
+
 
 There are some debugging statements that write to STDERR in both ~/src/vidar/scripts/readSEC.pl and ~src/vidar/scripts/add2BAD.pl.
 These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
 See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
-
-In theory, you should be able to, as root:
-- Choose a user (for example, vidar), or another non-privileged user.
-- mkdir ~/src && cd ~/src
-- git clone https://github.com/jimmyb-gh/vidar
-- As root, pkg install postgresql18-client postgresql18-server sec perl5 p5-DBD-Pg p5-DBI
-- Set up and initialize postgresql18, ensuring you have admin access 
-- Install the VIDAR database schema, roles, and tables by running ~/src/vidar/postgres/vidar.sql
-- Edit the file ~/src/vidar/scripts/ipfw_good_table.sh and enter your own IP addresses (v4 and v6).
-- Edit any variables desired in ~/src/vidar/etc/vidar_env.sh
-- Light 'er up!
-- cd ~/src/vidar/scripts
-- As root, ./vidar_start_postgres.sh
-
-This runs the code for sec(1) and the vidar_readSEC.pl and vidar_add2BAD.pl.
-If you have set up the debug output (see the section on debugging in vidar_env.sh)
-you should be able to see the stderr output of the vidar_readSEC.pl and vidar_add2BAD.pl
-scripts in real time.  
 
 \# TESTING
 
