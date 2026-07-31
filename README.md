@@ -60,7 +60,7 @@ at about 900 to 1000 messages per second.
 ## Installation Notes
 Below are some installation notes.
 
-
+```shell
 \# login as root
 
 pkg install postgresql18-client
@@ -249,7 +249,7 @@ Navigate to the logs directory (~/src/vidar/logs) and watch the files:
 And check the IPFW firewall
 
 - As root, ipfw table BAD list  (or ipfw table BAD list | wc)
-
+```
 
 ## Feedback Welcome!
 
