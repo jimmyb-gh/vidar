@@ -15,8 +15,8 @@ wreacking havoc on a FreeBSD host.
 
 A corresponding table named GOOD contains whitelisted IP addresses
 so you don't accidently lock yourself out.
-
-\<RANT>
+```text
+<RANT>
 
 Are you sick and tired of seeing:
 "2a03:b0c0:3:d0::402:d001 - - [31/Jan/2026:17:37:17 -0500] \x16\x03\x01\x05\xDE\x01 ..."
@@ -25,12 +25,14 @@ in your nginx logs and sick of seeing:
 in your mail logs and sick of seeing:
 "Feb 20 12:47:58 jimby sshd-session[47730]: Invalid user zzzz from 2607:f170:44:12::5d0 port 520"
 in your authentication logs?
+```
 
 With Vidar, you get to put the hammer down:
 
   "If you abuse my system, I will shut you out. Permanently."
-
-\</RANT>
+```text
+</RANT>
+```
 
 Vidar has additional tricks - a way to dump the IPFW BAD table and a way
 to import it later - you can keep this database of shame up to date on
