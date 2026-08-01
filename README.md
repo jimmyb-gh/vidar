@@ -218,8 +218,11 @@ sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line,
 #There are some debugging statements that write to STDERR in both ~/src/vidar/scripts/readSEC.pl and ~src/vidar/scripts/add2BAD.pl.
 #These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
 #See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
+```
 
 # TESTING
+
+```shell
 
 #To test, change the link in ~src/vidar/etc/vidar_env.sh  to point to vidar_dev.sh
 #and comment the following lines (production use):
