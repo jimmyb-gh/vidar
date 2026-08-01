@@ -220,7 +220,7 @@ sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line,
 #See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
 ```
 
-# TESTING
+## TESTING
 
 ```shell
 
