@@ -262,8 +262,8 @@ while (<STDIN>) {
     }
 
 
-    # Send validated IP to add2BAD.pl script.
-    print STDOUT "$ip\n";
+    # Send validated IP to add2BAD.pl script along with the permanent_block status.
+    print STDOUT "$ip|$permanent_block\n";
 }
 
 

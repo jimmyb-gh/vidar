@@ -1,0 +1,9 @@
+
+ socat -u UDP4-RECV:5514,bind=127.0.0.1,reuseaddr - | python3.11 ./vidar_map_server.py 
+ 
+ Note that this version uses downloaded leaflet code in /home/jpb/Desktop/Leaflet/*
+ 
+
+
+
+
