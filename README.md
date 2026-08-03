@@ -123,6 +123,7 @@ sudo ./vidar_database_init.sh
 local       vidar           vidar                                   peer
 
 # Leave the rest of file is unchanged.
+
 # You MUST restart postgresql after this change:
 service postgresql restart
 
@@ -155,14 +156,33 @@ SHOW_ENV="Y"
 
 cd ../scripts
 
+# Light 'er up.
+
 ./vidar_start_postgres.sh
 
 # ... Vidar starts here ...
 
-# Should succeed. if not diagnose why.
+# Should succeed. If not, diagnose why.
 # OOB login may be needed :-(
 
-# -----  Testing with test input  ------
+```
+# Testing with test input
+```shell
+
+# Check and/or comment the following lines in vidar_env.sh
+
+# - AUTHLOG=/var/log/auth.log
+# - EMAILLOG=/var/log/maillog
+# - NGINXLOG=/var/log/nginx/access.log
+
+# Then uncomment out these lines to use the included test data:
+
+# - AUTHLOG=${VIDAR_INPUT}/auth.log
+# - EMAILLOG=${VIDAR_INPUT}/maillog
+# - NGINXLOG=${VIDAR_INPUT}/access.log
+
+# Start up Vidar with:
+/bin/sh /home/vidar/dev/postgres/vidar_start_postgres.sh
 
 # As root or install user
 
@@ -181,7 +201,7 @@ ipfw table BAD list
 
 ipfw table BAD list | wc
 
-# Then
+# Then check the database with psql
 
 sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
 
@@ -196,8 +216,6 @@ sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders;"
 # ipfw table BAD list | wc
 #      947    1894   18793
 # 
-# 
-# 
 # Try some queries from PostgreSQL
 
 # Get count of permanent_block entries
@@ -207,51 +225,15 @@ sudo -u vidar psql -U vidar -d vidar -c "select count(*) from offenders where pe
 # Get list of offenders targeted for removal at listed time
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by context, desc_line asc;"
 
-
 # Same thing ordered by remove_after ascending (closest to removal first)
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, remove_after from offenders order by remove_after asc;"
 
 # Get list of offenders with the most serious offenses in descending order.  This is determined by block_seconds.
 sudo -u vidar psql -U vidar -d vidar -c "select offender_ip, context, desc_line, block_seconds  from offenders order by block_seconds desc;"
 
-
 #There are some debugging statements that write to STDERR in both ~/src/vidar/scripts/readSEC.pl and ~src/vidar/scripts/add2BAD.pl.
 #These can be commented out or the STDERR streams can be redirected to regular files or to /dev/null.
 #See the the *~/src/vidar/etc/vidar_env.sh* script for all important environment definitions.
-```
-
-## TESTING
-
-```shell
-
-#To test, change the link in ~src/vidar/etc/vidar_env.sh  to point to vidar_dev.sh
-#and comment the following lines (production use):
-
-# - AUTHLOG=/var/log/auth.log
-# - EMAILLOG=/var/log/maillog
-# - NGINXLOG=/var/log/nginx/access.log
-
-# Then uncomment out these lines to use the included test data:
-
-# - AUTHLOG=${VIDAR_INPUT}/auth.log
-# - EMAILLOG=${VIDAR_INPUT}/maillog
-# - NGINXLOG=${VIDAR_INPUT}/access.log
-
-# Start up Vidar with:
-  ~/src/vidar/postgres/vidar_start_postgres.sh
-
-# Then run
-  /bin/sh ~/src/vidar/utils/push.sh .1
-
-# This sends 10 lines per second through the Vidar system.
-# Navigate to the logs directory (~/src/vidar/logs) and watch the files:
-
-# - tail -f readSEC_stderr.txt
-# - tail -f add2BAD_stderr.txt
- 
-# And check the IPFW firewall
-
-# - As root, ipfw table BAD list  (or ipfw table BAD list | wc)
 ```
 
 ## Feedback Welcome!
