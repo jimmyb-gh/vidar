@@ -42,7 +42,6 @@ print STDERR "Start of vidar_add2BAD.pl\n";
 
 my $ip = "";
 my $permanent_block = 0;
-my $offender_ip = "";
 
 while (<STDIN>) {
 
@@ -56,11 +55,11 @@ while (<STDIN>) {
     ($ip, $permanent_block) = split('|', $inputline,2);
 
     # Strict validation - only valid IPs
-    unless (valid_ip($inputline)) {
-      warn "Invalid IP format: [$inputline]\n";
+    unless (valid_ip($ip)) {
+      warn "Invalid IP format: [$ip]\n";
       next;
     }
-    $ip = $inputline;  # untaint
+    # $ip = $inputline;  # untaint
 
     
     # Safe execution - no shell interpolation
@@ -75,7 +74,7 @@ while (<STDIN>) {
 # DEBUGGING
         print STDERR "Added [$ip]\n\n";
         # Send packet to Leaflet mapper.
-        send_map_event($offender_ip,$permanent_block);
+        send_map_event($ip,$permanent_block);
     }
 }
 
