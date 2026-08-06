@@ -52,7 +52,7 @@ while (<STDIN>) {
 # DEBUGGING
     print STDERR "Received $inputline\n";
     
-    ($ip, $permanent_block) = split('|', $inputline,2);
+    ($ip, $permanent_block) = split(/\|/, $inputline,2);
 
     # Strict validation - only valid IPs
     unless (valid_ip($ip)) {
