@@ -12,7 +12,7 @@ use IO::Socket::INET;  # used for sending UDP packets to Leaflet mapper via soca
 sub send_map_event {
   my($offender_ip, $permanent_block) = @_;
 
-  my $socket = IO:Socket::INET->new(
+  my $socket = IO::Socket::INET->new(
     PeerAddr => '127.0.0.1',
     PeerPort => 5514,
     Proto    => 'udp',
@@ -42,6 +42,7 @@ print STDERR "Start of vidar_add2BAD.pl\n";
 
 my $ip = "";
 my $permanent_block = 0;
+my $offender_ip = "";
 
 while (<STDIN>) {
 
