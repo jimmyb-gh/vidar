@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Vidar Attacker Map</title>
+
+  <!-- Leaflet stylesheet -->
+  <link
+    rel="stylesheet"
+    href="/leaflet/leaflet.css"  >
+
+  <!--
+    Leaflet JavaScript must be loaded before our own JavaScript uses L.
+  -->
+  <script
+    src="/leaflet/leaflet.js">
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: #111827;
+      border-bottom: 1px solid #374151;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    #connection-status {
+      padding: 0.25rem 0.6rem;
+      border: 1px solid #6b7280;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    #connection-status.connected {
+      border-color: #22c55e;
+    }
+
+    #connection-status.disconnected {
+      border-color: #ef4444;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /*
+      Leaflet requires the map container to have an explicit height.
+    */
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      background: #1f2937;
+    }
+
+    aside {
+      min-width: 0;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #111827;
+      border-left: 1px solid #374151;
+    }
+
+    aside h2 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    #event-count {
+      margin-bottom: 1rem;
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+
+    #recent-events {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .event-card {
+      padding: 0.7rem;
+      border: 1px solid #374151;
+      border-radius: 0.4rem;
+      background: #1f2937;
+      overflow-wrap: anywhere;
+    }
+
+    .event-card.error {
+      border-color: #ef4444;
+    }
+
+    .event-ip {
+      margin-bottom: 0.25rem;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .event-location,
+    .event-isp,
+    .event-time,
+    .event-error {
+      font-size: 0.82rem;
+    }
+
+    .event-location,
+    .event-isp,
+    .event-time {
+      color: #d1d5db;
+    }
+
+    .event-error {
+      color: #fca5a5;
+    }
+
+    footer {
+      padding: 0.45rem 1rem;
+      background: #111827;
+      border-top: 1px solid #374151;
+      color: #9ca3af;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(500px, 70vh) auto;
+      }
+
+      aside {
+        border-top: 1px solid #374151;
+        border-left: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Vidar Attacker Locations</h1>
+
+    <div
+      id="connection-status"
+      class="disconnected"
+    >
+      Connecting…
+    </div>
+  </header>
+
+  <main>
+    <div
+      id="map"
+      aria-label="Map of attacker locations"
+    ></div>
+
+    <aside>
+      <h2>Recent events</h2>
+
+      <div id="event-count">
+        No locations received
+      </div>
+
+      <div id="recent-events"></div>
+    </aside>
+  </main>
+
+  <footer>
+    Locations are approximate IP-network locations, not precise physical
+    locations.
+  </footer>
+
+  <script>
+    "use strict";
+
+    /*
+      Fail visibly rather than producing only "L is not defined" in the
+      JavaScript console.
+    */
+    if (typeof L === "undefined") {
+      document.getElementById("map").innerHTML =
+        "<p style='padding: 2rem'>" +
+        "Leaflet did not load. Check the browser Network and Console tabs." +
+        "</p>";
+
+      throw new Error("Leaflet library did not load");
+    }
+
+    /*
+      Create a world map.
+    */
+    const map = L.map("map", {
+      worldCopyJump: false
+    }).setView([20, 0], 2);
+
+    /*
+      Add the OpenStreetMap tile layer.
+    */
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">' +
+          "OpenStreetMap contributors</a>"
+      }
+    ).addTo(map);
+
+    const connectionStatus =
+      document.getElementById("connection-status");
+
+    const recentEvents =
+      document.getElementById("recent-events");
+
+    const eventCount =
+      document.getElementById("event-count");
+
+    const markersByIp = new Map();
+    
+    const temporaryMarkerStyle = {
+    	radius: 2,
+    	color: "#1d4ed8",
+    	fillColor: "#3b82f6",
+    	fillOpacity: 0.85,
+    	weight: 2
+    };
+    
+    const permanentMarkerStyle = {
+    	radius: 2,
+    	color: "#991b1b",
+    	fillColor: "#dc2626",
+    	fillOpacity: 0.9,
+    	weight: 2
+    };
+    
+
+    let locationCount = 0;
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatLocation(event) {
+      const parts = [
+        event.city,
+        event.region,
+        event.country
+      ].filter(Boolean);
+
+      return parts.length > 0
+        ? parts.join(", ")
+        : "Unknown location";
+    }
+
+    function buildPopup(event) {
+      const location = formatLocation(event);
+      const blockStatus = event.permanent_block
+      ? "Permanent block"
+      : "Temporary block";
+
+      const ispLine = event.isp
+        ? `<div><strong>ISP:</strong> ${escapeHtml(event.isp)}</div>`
+        : "";
+
+      return `
+        <div>
+          <div>
+            <strong>IP:</strong>
+            <code>${escapeHtml(event.ip)}</code>
+          </div>
+          
+		  <div>
+            <strong>Block:</strong>
+            ${escapeHtml(blockStatus)}
+          </div>
+          
+          <div>
+            <strong>Location:</strong>
+            ${escapeHtml(location)}
+          </div>
+
+          ${ispLine}
+
+          <div>
+            <strong>Coordinates:</strong>
+            ${Number(event.latitude).toFixed(4)},
+            ${Number(event.longitude).toFixed(4)}
+          </div>
+
+          <div>
+            <strong>Received:</strong>
+            ${escapeHtml(event.timestamp)}
+          </div>
+        </div>
+      `;
+    }
+
+    function addLocation(event) {
+      const latitude = Number(event.latitude);
+      const longitude = Number(event.longitude);
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+      ) {
+        addError({
+          ip: event.ip,
+          message: "Received invalid coordinates"
+        });
+
+        return;
+      }
+
+      const coordinates = [latitude, longitude];
+      let marker = markersByIp.get(event.ip);
+
+      if (marker) {
+        marker.setLatLng(coordinates);
+        marker.setPopupContent(buildPopup(event));
+        
+        marker.setStyle(
+        	event.permanent_block
+        	? permanentMarkerStyle
+        	: temporaryMarkerStyle
+        );
+      } else {
+        const markerStyle = event.permanent_block
+        ? permanentMarkerStyle
+        : temporaryMarkerStyle;
+        
+        marker = L.circleMarker(coordinates, markerStyle)
+        	.addTo(map)
+        	.bindPopup(buildPopup(event));
+
+        markersByIp.set(event.ip, marker);
+      }
+
+      /*
+        Open the newest marker and move the map to it.
+
+        A minimum zoom of 4 makes individual locations visible while
+        retaining some geographic context.
+      */
+      // jpb marker.openPopup();
+
+      // jpb const targetZoom = Math.max(map.getZoom(), 4);
+
+      // jpb map.flyTo(coordinates, targetZoom, {
+      // jpb   duration: 0.8
+      // jpb });
+
+      locationCount += 1;
+
+      eventCount.textContent =
+        `${locationCount} location event` +
+        `${locationCount === 1 ? "" : "s"} received`;
+
+      const card = document.createElement("div");
+      card.className = "event-card";
+
+      card.innerHTML = `
+        <div class="event-ip">
+          ${escapeHtml(event.ip)}
+        </div>
+
+        <div class="event-location">
+          ${escapeHtml(formatLocation(event))}
+        </div>
+
+        ${
+          event.isp
+            ? `<div class="event-isp">${escapeHtml(event.isp)}</div>`
+            : ""
+        }
+
+        <div class="event-time">
+          ${escapeHtml(event.timestamp)}
+        </div>
+      `;
+
+      recentEvents.prepend(card);
+
+      /*
+        Retain only the 50 newest cards in the side panel.
+      */
+      while (recentEvents.children.length > 50) {
+        recentEvents.removeChild(recentEvents.lastChild);
+      }
+    }
+
+    function addError(event) {
+      const card = document.createElement("div");
+      card.className = "event-card error";
+
+      card.innerHTML = `
+        <div class="event-ip">
+          ${escapeHtml(event.ip || "Unknown IP")}
+        </div>
+
+        <div class="event-error">
+          ${escapeHtml(event.message || "Unknown error")}
+        </div>
+      `;
+
+      recentEvents.prepend(card);
+
+      while (recentEvents.children.length > 50) {
+        recentEvents.removeChild(recentEvents.lastChild);
+      }
+    }
+
+    function connectToLocationStream() {
+      const eventSource = new EventSource("/events");
+
+      eventSource.onopen = function () {
+        connectionStatus.textContent = "Connected";
+        connectionStatus.className = "connected";
+      };
+
+      eventSource.onerror = function () {
+        connectionStatus.textContent = "Reconnecting…";
+        connectionStatus.className = "disconnected";
+      };
+
+      eventSource.onmessage = function (message) {
+        let event;
+
+        try {
+          event = JSON.parse(message.data);
+        } catch (error) {
+          console.error(
+            "Could not parse event-stream message:",
+            message.data,
+            error
+          );
+
+          return;
+        }
+
+        console.log("Vidar event:", event);
+
+        switch (event.type) {
+          case "status":
+            connectionStatus.textContent =
+              event.message || "Connected";
+            connectionStatus.className = "connected";
+            break;
+
+          case "location":
+            addLocation(event);
+            break;
+
+          case "error":
+            addError(event);
+            break;
+
+          default:
+            console.warn("Unknown Vidar event type:", event);
+        }
+      };
+    }
+
+    connectToLocationStream();
+
+    /*
+      This protects against a partially sized map if the page layout changes
+      while loading.
+    */
+    window.addEventListener("load", function () {
+      map.invalidateSize();
+    });
+  </script>
+</body>
+</html>

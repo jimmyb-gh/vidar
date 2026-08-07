@@ -1,0 +1,13 @@
+
+# Leaflet utilities.
+
+# Using leaflet requires a download of the leaflet javascript code to 
+# be unzipped in the directory where vidar_map_server.py is located.
+
+ socat -u UDP4-RECV:5514,bind=127.0.0.1,reuseaddr - | python3.11 ./vidar_map_server.py 
+
+# The following code can be used to take a file of IP addresses (t.t) and put them on
+# the leaflet map when the vidar_map_server.py script is running:
+
+cat t.t | perl throt.pl 5 | socat -  UDP4-SENDTO:127.0.0.1:5514
+
