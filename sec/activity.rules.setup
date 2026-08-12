@@ -11,7 +11,7 @@
 # 
 type=Single
 ptype=RegExp
-pattern=\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+(more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)\s+(.*?)$
+pattern=\s*(\d+\.\d+)\s+(\S+?)\s+(\S+)\s+(\d+)\s+.*?(pkg|more|less|ping|nc|ncat|cc|perl|pyth|vi|ee|ssh|scp|sftp|ftp|fetch|rsync)(.*)$
 desc=echo input line
 context=PROC
 continue=TakeNext
