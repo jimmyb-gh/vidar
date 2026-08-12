@@ -178,6 +178,9 @@ fix_runtime_environment() {
 
       chown -h root:"${VIDAR_GROUP}" "$VIDAR_ETC/vidar_env.sh"
       chmod 0644 "${VIDAR_ETC}/vidar_env.sh"
+
+      # Copy the right sec rules fixup file in place
+      cp "${VIDAR_DST}"/sec/f.sed.dev "${VIDAR_DST}"/sec/f.sed
     )
 
     # If production (VIDAR_ENVIRONMENT=PRODUCTION), then
@@ -198,10 +201,15 @@ fix_runtime_environment() {
             else
                 info "ERROR Modifying  vidar_env.sh for production locations."
             fi
+
+          # Copy the right sec rules fixup file in place
+          cp "${VIDAR_DST}"/sec/f.sed.prod "${VIDAR_DST}"/sec/f.sed
         )
     fi
 
     info "Remove setupfiles/* after installation."
+    rm "${VIDAR_DST}"/sec/f.sed.dev 
+    rm "${VIDAR_DST}"/sec/f.sed.prod 
 
 # Do all chmods here since now all files actually exist.
 
