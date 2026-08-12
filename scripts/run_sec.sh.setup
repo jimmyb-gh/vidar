@@ -5,9 +5,11 @@
 #               and input files accordingly
 
 # Pick up environment for this run, but don't print it out.
-
-SHOW_ENV="Y"
-. @@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh
+#
+# Do not enable this here.  It throws the environment output into sec input
+# which is not what we want.
+# SHOW_ENV="N"
+# . @@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh
 
 
 # set -x
