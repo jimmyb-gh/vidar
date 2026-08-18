@@ -128,3 +128,95 @@ VALUES (
     NULL,
     'dummy record evidence text inserted by vidar.sql'
 );
+
+---
+--- Create new blocking_config table to keep the blocking values.
+--- See ChatGPT discussion on charging repeat offenders more.
+---
+--- We calculate a block_seconds value based on the repeat count:
+--- block_seconds(r)=(B*(10/(10-r)))^p  where
+--- 
+---   r  is the repeat count
+---   B  is the original block duration (7200 seconds, etc.)
+---   p  is the exponent controlling the penalty acceleration
+--- 
+--- See www.desmos.com/calculator for testing values of r, B, and p.
+--- 
+---    for example  y = 1((10/10-x))^2
+--- 
+--- The penalties for repeat offenders becomes:
+--- 
+--- | repeats (x) |        multiplier (y) |                   approx |
+--- | ----------: | --------------------: | -----------------------: |
+--- |           0 |         ( (10/10)^2 ) |                  1.0000× |
+--- |           1 | ( (10/9)^2 = 100/81 ) |                  1.2346× |
+--- |           2 |  ( (10/8)^2 = 25/16 ) |                  1.5625× |
+--- |           3 | ( (10/7)^2 = 100/49 ) |                  2.0408× |
+--- |           4 |   ( (10/6)^2 = 25/9 ) |                  2.7778× |
+--- |           5 |          ( (10/5)^2 ) |                  4.0000× |
+--- |           6 |          ( (10/4)^2 ) |                  6.2500× |
+--- |           7 |          ( (10/3)^2 ) |                 11.1111× |
+--- |           8 |          ( (10/2)^2 ) |                 25.0000× |
+--- |           9 |          ( (10/1)^2 ) |                100.0000× |
+--- |          10 |           divide by 0 | **infinity / permanent** |
+--- 
+--- so for a 1 day block (86400 seconds), the values become:
+--- 
+--- repeat 0      1 day
+--- repeat 1      1.15 days
+--- repeat 3      1.56 days
+--- repeat 5      2.25 days
+--- repeat 7      3.5 days
+--- repeat 10     9 days
+--- repeat 12     25 days
+--- repeat 13     56 days
+--- repeat 14     225 days
+--- repeat 15     permanent
+---
+--- All we need is a table to maintain the values for the repeat asymptote (10 above),
+--- the repeat exponent (2 above), and a permanent block cutoff value.  This last value
+--- is a shortcut to getting to permanent block status - 8 or 9 repeats for example.
+---
+--- 
+--- Table is in hash format.  The SQL functions select a value into variables where
+--- key equals the supplied text.
+
+CREATE TABLE blocking_config (
+  key    text  PRIMARY KEY,
+  value  numeric NOT NULL
+);
+
+INSERT INTO blocking_config VALUES
+  ('repeat_asymptote', 10),
+  ('repeat_exponent',   2),
+  ('blocking_cutoff',  10)
+;
+
+
+
+CREATE OR REPLACE FUNCTION vidar_blocking_multiplier(repeats integer)
+RETURNS numeric
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    asymptote numeric;
+    exponent  numeric;
+BEGIN
+    SELECT value INTO asymptote
+      FROM blocking_config
+     WHERE key = 'repeat_asymptote';
+
+    SELECT value INTO exponent
+      FROM blocking_config
+     WHERE key = 'repeat_exponent';
+
+    IF repeats >= asymptote THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN power(
+        asymptote / (asymptote - repeats),
+        exponent
+    );
+END;
+$$;
