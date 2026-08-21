@@ -211,7 +211,7 @@ BEGIN
      WHERE key = 'repeat_exponent';
 
     IF repeats >= asymptote THEN
-        RETURN NULL;
+        repeats = asymptote - 1;
     END IF;
 
     RETURN power(
