@@ -135,13 +135,19 @@ my $offenders_sth = $dbh->prepare(q{
          * If neither event is permanent, retain the longer
          * block_seconds duration so a lower risk (weaker) event cannot
          * shorten an existing block_seconds value.
+         *
+         * Also, use multiplier from function vidar_blocking_multiplier
+         * to adjust the block time for repeat offenders.
+         * See postgres/vidar.sql for more info.
          */
          block_seconds   = CASE
              WHEN offenders.permanent_block = 1
                OR EXCLUDED.permanent_block = 1
                  THEN 0
              ELSE GREATEST(
-                 offenders.block_seconds,
+                 round(
+                   offenders.block_seconds * 
+                     vidar_blocking_multiplier(offenders.repeat_count + 1)),
                  EXCLUDED.block_seconds
                  )
              END,
