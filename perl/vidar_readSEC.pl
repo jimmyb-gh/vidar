@@ -145,10 +145,16 @@ my $offenders_sth = $dbh->prepare(q{
                OR EXCLUDED.permanent_block = 1
                  THEN 0
              ELSE GREATEST(
+         /*
+         * Notice the extra bind parameter ('?') here.  It is bound to an extra $block_seconds
+         * during the execute statement below.  We need the original block_seconds from
+         * the SEC rule for the calculation in the vidar_blocking_multiplier function.
+         * The rule is "never decrease a block_seconds value." It should be monotonically increasing only.
+         */
                  round(
-                   offenders.block_seconds * 
-                     vidar_blocking_multiplier(offenders.repeat_count + 1)),
-                 EXCLUDED.block_seconds
+                  ? *  vidar_blocking_multiplier(offenders.repeat_count + 1)),
+                 EXCLUDED.block_seconds,
+                 offenders.block_seconds
                  )
              END,
          /*
@@ -260,7 +266,8 @@ while (<STDIN>) {
                                 $remove_after,
                                 $ipfw_removed_at,
                                 $repeat_count,
-                                $evidence);
+                                $evidence,
+                                $block_seconds);  # Extra bind value. See note in UPSERT clause above.
     };
     if ($@) {
         warn "Insert into offenders failed: $@";
