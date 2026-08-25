@@ -194,6 +194,9 @@ INSERT INTO blocking_config VALUES
 
 
 
+---
+--- Function to compute block_seconds multiplier.
+---
 CREATE OR REPLACE FUNCTION vidar_blocking_multiplier(repeats integer)
 RETURNS numeric
 LANGUAGE plpgsql
@@ -218,5 +221,21 @@ BEGIN
         asymptote / (asymptote - repeats),
         exponent
     );
+END;
+$$;
+
+
+---
+--- Function to compute new remove_after timestamp.
+---
+CREATE OR REPLACE FUNCTION vidar_compute_new_remove_after(
+    event_time timestamp,
+    block_seconds integer
+)
+RETURNS TIMESTAMP
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN event_time + MAKE_INTERVAL(secs => block_seconds);
 END;
 $$;
