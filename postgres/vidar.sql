@@ -229,13 +229,23 @@ $$;
 --- Function to compute new remove_after timestamp.
 ---
 CREATE OR REPLACE FUNCTION vidar_compute_new_remove_after(
-    event_time timestamp,
+    event_time timestamp,    
     block_seconds integer
 )
 RETURNS TIMESTAMP
 LANGUAGE plpgsql
 AS $$
+--- DECLARE
+---     calculated_remove_after TIMESTAMP;
 BEGIN
+---    RAISE WARNING 'The event_time was % and the block_seconds value was %',
+---                  event_time, block_seconds;
+---    
+---    calculated_remove_after := event_time + MAKE_INTERVAL(secs => block_seconds);
+---
+---    RAISE WARNING 'The calculated_remove_after time is %', calculated_remove_after;
+---    
     RETURN event_time + MAKE_INTERVAL(secs => block_seconds);
 END;
 $$;
+
