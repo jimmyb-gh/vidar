@@ -9,6 +9,8 @@ use Time::Seconds;
 # vidar_readSEC.pl - read SEC pipe-delimited output and update the
 #                    PostgreSQL database.
 #
+# This version enforces penalties (longer block times) for repeat offenders.
+#
 
 # Subroutine to compute the remove_after time to insert into PostgreSQL.
 # If there is a problem with the incoming ofense_time variable,
@@ -170,7 +172,9 @@ my $offenders_sth = $dbh->prepare(q{
                  THEN 'infinity'::timestamp
              ELSE GREATEST(
                  offenders.remove_after,
-                 EXCLUDED.remove_after
+                 EXCLUDED.remove_after,
+                 vidar_compute_new_remove_after(EXCLUDED.offense_time, EXCLUDED.block_seconds),
+                 vidar_compute_new_remove_after(offenders.offense_time, offenders.block_seconds)
                  )
              END,
          /*
