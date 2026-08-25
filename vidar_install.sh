@@ -10,6 +10,7 @@
 
 usage() {
     echo "usage: $0 dev|prod" >&2
+    echo
     exit 1
 }
 
