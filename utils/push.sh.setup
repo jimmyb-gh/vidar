@@ -3,6 +3,7 @@
 #  push.sh  - push data into auth.log, maillog, and access.log
 
 # Pick up the productoin environment
+export SHOW_ENV="Y"
 . @@@VIDAR_HOMEDIR@@@/etc/vidar_env.sh 
 
 usage(){
@@ -37,13 +38,9 @@ else
   THROTTLE=$1
 fi
 
+echo
 echo "Throttle is [${THROTTLE}]"
-
-
-# Pick up the environment
-
-export SHOW_ENV="Y"
-. ${VIDAR_ETC}/vidar_env.sh
+echo
 
 # Touch all the output files:
 touch ${VIDAR_LOGS}/ALLOW.TXT
@@ -58,17 +55,28 @@ touch ${VIDAR_LOGS}/vidar_add2BAD.log
 
 cd ${VIDAR_HOME}/input
 
+echo "NOTE: about to run:"
+echo
+echo "cat ${VIDAR_TESTDATA}/a.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${AUTHLOG}"
+echo "cat ${VIDAR_TESTDATA}/m.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${EMAILLOG}"
+echo "cat ${VIDAR_TESTDATA}/acc.testdata | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${NGINXLOG}"
+
+read -p "Hit return to continue or Ctl-C to exit: " junk
+
 
 # Send data via perl
-cat ${VIDAR_TESTDATA}/a.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/auth.log    &
+
+cat ${VIDAR_TESTDATA}/a.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${AUTHLOG}    &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 sleep 1
-cat ${VIDAR_TESTDATA}/m.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/maillog     &
+
+cat ${VIDAR_TESTDATA}/m.testdata   | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${EMAILLOG}     &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 sleep 1
-cat ${VIDAR_TESTDATA}/acc.testdata | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${VIDAR_INPUT}/access.log  &
+
+cat ${VIDAR_TESTDATA}/acc.testdata | perl ${VIDAR_UTILS}/throt.pl ${THROTTLE} >> ${NGINXLOG} &
 PIDS="${PIDS} $!"
 echo "PIDS: [${PIDS}]"
 

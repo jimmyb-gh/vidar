@@ -110,8 +110,8 @@ install_tree() {
     chown -R "$VIDAR_USER:$VIDAR_GROUP" "${VIDAR_DST}"
 
     # One more special exception  - the helper file vidar_ipfw_delete.sh
-    # which should live in either the local libexec directory, when installed
-    # in dev mode or the system libexec/vidar directory when installed in prod mode. 
+    # which should live in the ~/dev/vidar/libexec directory, when installed
+    # in dev mode or the /usr/local/vidar/libexec directory when installed in prod mode. 
     # Note that the sudoers.d/vidar entry has to track which location the
     # installation takes.
     # This function only installs the helper file.  See the function
@@ -131,18 +131,18 @@ install_tree() {
             chmod 0550 "${VIDAR_DST}/libexec"
             ;;
         prod)
-            # Install the helper file in /usr/local/libexec/vidar/vidar_ipfw_delete.sh
-            info "Fixing prod helper at [/usr/local/libexec/vidar/vidar_ipfw_delete.sh]"
-            install -d -o root -g wheel -m 0755 /usr/local/libexec/vidar
+            # Install the helper file in /usr/local/vidar/libexec/vidar_ipfw_delete.sh
+            info "Fixing prod helper at [/usr/local/vidar/libexec/vidar_ipfw_delete.sh]"
+            install -d -o root -g wheel -m 0755 /usr/local/vidar/libexec
 
             install -o root -g wheel -m 0550 \
                "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh" \
-               /usr/local/libexec/vidar/vidar_ipfw_delete.sh
+               /usr/local/vidar/libexec/vidar_ipfw_delete.sh
               
-            rm -f "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh"
+            #rm -f "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh"
             rm -f "${VIDAR_DST}/libexec/.gitkeep"
             # Remove local libexec directory so there is no confusion.
-            rmdir "${VIDAR_DST}/libexec"
+            #rmdir "${VIDAR_DST}/libexec"
 
 
             #mv "${VIDAR_DST}/libexec/vidar_ipfw_delete.sh" /usr/local/libexec/vidar/
@@ -324,12 +324,14 @@ vidar_sudoers_setup() {
             info "Fixing dev sudoers.d entry."
             cat > "$tmpfile" <<EOF
 vidar ALL=(root) NOPASSWD: ${VIDAR_DST}/libexec/vidar_ipfw_delete.sh *
+vidar ALL=(root) NOPASSWD: /sbin/ipfw table BAD list
 EOF
             ;;
         prod)
             info "Fixing prod sudoers.d entry."
             cat > "$tmpfile" <<EOF
-vidar ALL=(root) NOPASSWD: /usr/local/libexec/vidar/vidar_ipfw_delete.sh *
+vidar ALL=(root) NOPASSWD: /usr/local/vidar/libexec/vidar_ipfw_delete.sh *
+vidar ALL=(root) NOPASSWD: /sbin/ipfw table BAD list
 EOF
             ;;
         *)

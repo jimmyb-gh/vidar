@@ -147,7 +147,7 @@ my $ipfwcount = 0;
 
 print STDERR "Extracting the IPFW BAD table\n\n";
 # Now get the IPFW list
-my @ipfw_array = `/sbin/ipfw table BAD list`;
+my @ipfw_array = `/usr/local/bin/sudo  /sbin/ipfw table BAD list`;
 
 my %ipfw_hash = ();
 
