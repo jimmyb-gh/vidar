@@ -31,17 +31,25 @@ echo "ipfw_up.sh kldload ipfw has been run."
 echo "Creating GOOD table whitelist."
 # GOOD table 
 ipfw table GOOD create type addr missing
+
+# Important!!
+# Put your own IPv4 and/or IPv6
+# addresses into these statements.
 # OCH
 #ipfw table GOOD add 2600:1700:3901:4940:3e97:eff:fe10:92f2
 #ipfw table GOOD add 108.253.226.42
 
 # Lab testing
-ipfw table GOOD add 203.0.113.10
-ipfw table GOOD add 10.0.0.7
+#ipfw table GOOD add 203.0.113.10
+#ipfw table GOOD add 10.0.0.7
 
-# Gregory 
+# Gregory and others
 ipfw table GOOD add 68.34.27.251
+ipfw table GOOD add 107.122.246.161
+ipfw table GOOD add 107.15.47.53
 ipfw table GOOD add 2601:410:8601:3af0:3e97:eff:fe10:92f2
+ipfw table GOOD add 2601:410:8683:8bf:3e97:eff:fe10:92f2
+ipfw table GOOD add 2607:f2f8:af80::a 
 ipfw table GOOD list
 
 # GOOD table rules for good people.
